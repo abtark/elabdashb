@@ -8,8 +8,8 @@ const ubuntu = Ubuntu({
 });
 
 export const metadata = {
-  title: "Emanistation Dashboard",
-  description: "Modern Glassmorphism Dashboard",
+  title: "Login - Emanistation",
+  description: "Secure Dashboard Access",
 };
 
 export default function RootLayout({ children }) {
@@ -22,7 +22,9 @@ export default function RootLayout({ children }) {
         />
         <link rel="icon" href="https://iili.io/FC3fr7f.png" />
       </head>
-      <body className={ubuntu.className}>{children}</body>
+      <body className={`${ubuntu.variable} font-ubuntu antialiased`}>
+        {children}
+      </body>
     </html>
   );
 }
