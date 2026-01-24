@@ -1,174 +1,74 @@
 "use client";
-
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { FaUser, FaKey, FaArrowRight } from "react-icons/fa";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { User, Key, ArrowRight, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(false);
-
-    // Mock Authentication Logic
     setTimeout(() => {
       if (email === "admin@xmail.com" && password === "1234567890") {
         router.push("/dashboard");
       } else {
-        setError(true);
+        alert("Invalid credentials");
         setLoading(false);
       }
-    }, 1500); // Simulate network delay for smooth UX
+    }, 1000);
   };
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Abstract blobs for depth */}
-      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-600/30 rounded-full blur-[100px]" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-600/30 rounded-full blur-[100px]" />
+    <main className="min-h-screen w-full flex items-center justify-center bg-gray-900 relative overflow-hidden">
+      {/* Moving Background Blobs */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
+      <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000" />
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-[750px] max-h-[95vh] flex flex-col items-center justify-center relative z-10"
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-[90%] max-w-[450px] glass-panel rounded-3xl p-8 relative z-10 flex flex-col items-center"
       >
-        {/* Glass Container */}
-        <div className="w-full bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-8 md:p-12 overflow-y-auto">
-          
-          {/* Logo Section */}
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex justify-center mb-8"
+        <Image src="https://iili.io/FC3KC6g.png" alt="Logo" width={150} height={150} className="mb-6 drop-shadow-2xl" />
+        <h1 className="text-2xl font-bold text-white mb-2">Log in to EntryLab</h1>
+        <p className="text-white/60 text-sm mb-8">Access your workspace</p>
+
+        <form onSubmit={handleLogin} className="w-full space-y-4">
+          <div className="relative">
+            <User className="absolute left-3 top-3 text-white/50 w-5 h-5" />
+            <input 
+              type="email" 
+              placeholder="Enter your Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            />
+          </div>
+          <div className="relative">
+            <Key className="absolute left-3 top-3 text-white/50 w-5 h-5" />
+            <input 
+              type="password" 
+              placeholder="Enter your Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            />
+          </div>
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
           >
-            <div className="relative w-24 h-24 md:w-32 md:h-32 drop-shadow-2xl">
-              <Image 
-                src="https://iili.io/FC3KC6g.png" 
-                alt="Emanistation Logo" 
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-          </motion.div>
-
-          {/* Heading */}
-          <motion.h1 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-3xl md:text-4xl font-bold text-center text-white mb-2 tracking-wide"
-          >
-            Log in to Emanistation
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="text-white/50 text-center mb-10 text-sm md:text-base"
-          >
-            Welcome back, please enter your details.
-          </motion.p>
-
-          {/* Form */}
-          <form onSubmit={handleLogin} className="space-y-6 w-full max-w-md mx-auto">
-            
-            {/* Email Input */}
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-              className="relative group"
-            >
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/50 group-focus-within:text-white transition-colors">
-                <FaUser />
-              </div>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-black/20 border border-white/10 text-white placeholder-white/30 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent block w-full pl-10 p-4 transition-all duration-300 outline-none hover:bg-black/30"
-                placeholder="Enter your Email"
-              />
-            </motion.div>
-
-            {/* Password Input */}
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 }}
-              className="relative group"
-            >
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/50 group-focus-within:text-white transition-colors">
-                <FaKey />
-              </div>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-black/20 border border-white/10 text-white placeholder-white/30 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent block w-full pl-10 p-4 transition-all duration-300 outline-none hover:bg-black/30"
-                placeholder="Enter your Password"
-              />
-            </motion.div>
-
-            {/* Error Message */}
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="text-red-400 text-sm text-center flex flex-col gap-1"
-                >
-                  <span>Invalid credentials.</span>
-                  <button type="button" className="underline hover:text-red-300 transition-colors">
-                    Forget password?
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Submit Button */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-900/20 hover:shadow-blue-900/40 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-              type="submit"
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  Sign In <FaArrowRight className="text-sm" />
-                </>
-              )}
-            </motion.button>
-          </form>
-
-          {/* Footer */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="mt-8 text-center text-sm text-white/60"
-          >
-            New? <span className="text-white font-semibold cursor-pointer hover:underline">Create an account.</span>
-          </motion.div>
-
-        </div>
+            {loading ? <Loader2 className="animate-spin" /> : <>Sign In <ArrowRight className="w-4 h-4" /></>}
+          </button>
+        </form>
       </motion.div>
     </main>
   );
