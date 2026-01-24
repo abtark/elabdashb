@@ -3,6 +3,12 @@
 @tailwind utilities;
 
 :root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+[data-theme='dark'] {
   --foreground-rgb: 255, 255, 255;
   --background-start-rgb: 0, 0, 0;
   --background-end-rgb: 0, 0, 0;
@@ -10,24 +16,27 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom right,
-      #000000,
-      #1a1a2e,
-      #16213e
-    );
-  min-height: 100vh;
-  overflow-x: hidden;
+  background: transparent;
+  overflow: hidden; /* Prevent body scroll, handle in container */
 }
 
-/* Custom Scrollbar for Webkit */
+/* Glass Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent; 
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2); 
+  background: rgba(128, 128, 128, 0.4); 
   border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.6); 
+}
+
+/* Utility for glass consistency */
+.glass-panel {
+  @apply bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-xl;
 }
