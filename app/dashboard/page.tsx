@@ -44,7 +44,7 @@ const Modal = ({ isOpen, onClose, title, children }: { isOpen: boolean; onClose:
   );
 };
 
-// 2. Confirm Modal (Replaces window.confirm)
+// 2. Confirm Modal
 const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: { isOpen: boolean; onClose: () => void; onConfirm: () => void; message: string }) => {
   if (!isOpen) return null;
   return (
@@ -90,11 +90,11 @@ const LinkedInSection = () => {
 
   return (
     <>
-      <div className="bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-5 mb-4 backdrop-blur-md shadow-sm relative flex flex-col items-center gap-4 w-full">
+      <div className="bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 mb-3 backdrop-blur-md shadow-sm relative flex flex-col items-center gap-3 w-fit mx-auto min-w-[650px]">
         
         {/* Line 1: Title + Reset */}
         <div className="w-full relative flex justify-center items-center">
-          <h3 className="font-bold text-blue-600 dark:text-blue-400 text-lg">
+          <h3 className="font-bold text-blue-600 dark:text-blue-400 text-base">
             LinkedIn Sales Page Calculation
           </h3>
           {(totalSales !== '' || currentPage !== '') && (
@@ -103,51 +103,54 @@ const LinkedInSection = () => {
               className="absolute right-0 top-0 text-red-500 hover:bg-red-500/10 p-1 rounded-full transition-colors"
               title="Reset"
             >
-              <RotateCcw size={18} />
+              <RotateCcw size={16} />
             </button>
           )}
         </div>
 
         {/* Line 2: Default Leads */}
-        <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-blue-500/10 dark:bg-blue-500/20 px-4 py-1.5 rounded-full border border-blue-500/20">
-          <Compass size={14} className="text-blue-500" />
+        <div className="flex items-center gap-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-blue-500/10 dark:bg-blue-500/20 px-3 py-1 rounded-full border border-blue-500/20">
+          <Compass size={12} className="text-blue-500" />
           <span>Default Leads on SalesNav Page</span>
           <span className="text-blue-600 dark:text-blue-400">➜</span>
           <span className="font-bold text-blue-700 dark:text-blue-300">25</span>
         </div>
 
-        {/* Line 3: Inputs & Results (Space Between) */}
-        <div className="flex flex-nowrap items-center justify-between w-full gap-2">
+        {/* Line 3: Inputs & Results (Compact Grouping) */}
+        <div className="flex flex-nowrap items-center justify-center gap-4 w-full mt-1">
           
           {/* Group 1: Total */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 bg-white/50 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-lg p-1 pr-3">
             <input 
               type="number" 
               placeholder="Total Sales Results"
               value={totalSales}
               onChange={(e) => setTotalSales(e.target.value === '' ? '' : Number(e.target.value))}
-              className="w-36 bg-white/60 dark:bg-white/5 border border-blue-500/30 dark:border-blue-500/50 rounded-lg py-2 px-3 text-center text-sm outline-none focus:ring-0 text-gray-800 dark:text-white placeholder:text-gray-500 no-spinner"
+              className="w-32 bg-transparent border-none py-1 px-2 text-center text-sm outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner"
             />
-            <div className="flex flex-col leading-tight text-xs text-gray-600 dark:text-gray-400">
+            <div className="w-px h-6 bg-black/10 dark:bg-white/10 mx-1"></div>
+            <div className="flex flex-col leading-none text-[10px] text-gray-500 dark:text-gray-400 text-right">
               <span>Approx.</span>
-              <span className="font-bold text-base text-gray-800 dark:text-white">{approx}</span>
+              <span className="font-bold text-sm text-gray-800 dark:text-white">{approx}</span>
             </div>
           </div>
 
-          <div className="w-px h-8 bg-black/10 dark:bg-white/10 mx-1"></div>
+          {/* Divider */}
+          <div className="w-px h-8 bg-black/10 dark:bg-white/10"></div>
 
           {/* Group 2: Current */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 bg-white/50 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-lg p-1 pr-3">
             <input 
               type="number" 
               placeholder="Current Sales Page"
               value={currentPage}
               onChange={(e) => setCurrentPage(e.target.value === '' ? '' : Number(e.target.value))}
-              className="w-36 bg-white/60 dark:bg-white/5 border border-blue-500/30 dark:border-blue-500/50 rounded-lg py-2 px-3 text-center text-sm outline-none focus:ring-0 text-gray-800 dark:text-white placeholder:text-gray-500 no-spinner"
+              className="w-32 bg-transparent border-none py-1 px-2 text-center text-sm outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner"
             />
-            <div className="flex flex-col leading-tight text-xs text-gray-600 dark:text-gray-400">
+            <div className="w-px h-6 bg-black/10 dark:bg-white/10 mx-1"></div>
+            <div className="flex flex-col leading-none text-[10px] text-gray-500 dark:text-gray-400 text-right">
                <span>Remain</span>
-               <span className="font-bold text-base text-gray-800 dark:text-white">{remain}</span>
+               <span className="font-bold text-sm text-gray-800 dark:text-white">{remain}</span>
             </div>
           </div>
 
@@ -192,7 +195,7 @@ const SentLinksSection = () => {
 
   return (
     <>
-      <div className="bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 mb-4 backdrop-blur-md shadow-sm flex items-center justify-between w-full gap-2">
+      <div className="bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-3 mb-3 backdrop-blur-md shadow-sm flex items-center justify-center gap-4 w-fit mx-auto min-w-[650px]">
         
         {/* Left: Input Group */}
         <div className="flex items-center gap-2">
@@ -202,10 +205,10 @@ const SentLinksSection = () => {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value === '' ? '' : Number(e.target.value))}
             onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-            className="w-20 bg-white/60 dark:bg-white/5 border border-blue-500/40 rounded-lg py-2 px-2 text-center font-bold text-gray-800 dark:text-white outline-none focus:ring-0 placeholder:font-normal no-spinner"
+            className="w-24 bg-white/60 dark:bg-white/5 border border-blue-500/40 rounded-lg py-2 px-3 text-center font-bold text-gray-800 dark:text-white outline-none placeholder:font-normal no-spinner text-sm"
           />
           <button onClick={handleAdd} className="bg-blue-100 hover:bg-blue-200 dark:bg-blue-500/20 dark:hover:bg-blue-500/40 text-blue-600 dark:text-blue-300 border border-blue-500/30 p-2 rounded-lg transition-colors">
-            <Check size={20} strokeWidth={3} />
+            <Check size={18} strokeWidth={3} />
           </button>
         </div>
 
@@ -213,10 +216,9 @@ const SentLinksSection = () => {
 
         {/* Center: Total Display */}
         <div className="flex items-center gap-2">
-           <span className="text-blue-600 dark:text-blue-400 font-medium whitespace-nowrap hidden sm:inline">Total Sent Links =</span>
-           <span className="text-blue-600 dark:text-blue-400 font-medium sm:hidden">Total =</span>
+           <span className="text-blue-600 dark:text-blue-400 font-medium text-sm">Total Sent Links =</span>
            <div className="bg-blue-100/50 dark:bg-blue-500/10 border border-blue-500/30 rounded-lg px-4 py-1.5 min-w-[60px] text-center">
-             <span className="text-xl font-bold text-blue-700 dark:text-blue-300">{totalLinks}</span>
+             <span className="text-lg font-bold text-blue-700 dark:text-blue-300">{totalLinks}</span>
            </div>
         </div>
 
@@ -224,11 +226,11 @@ const SentLinksSection = () => {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowLogs(true)} className="flex items-center gap-1 bg-white/50 dark:bg-white/5 border border-blue-500/30 hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 px-3 py-2 rounded-lg font-bold text-sm transition-all">
-            <History size={16} /> <span className="hidden sm:inline">Logs</span>
+          <button onClick={() => setShowLogs(true)} className="flex items-center gap-1 bg-white/50 dark:bg-white/5 border border-blue-500/30 hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-lg font-bold text-xs transition-all">
+            <History size={14} /> Logs
           </button>
-          <button onClick={() => setResetConfirmOpen(true)} className="flex items-center gap-1 bg-red-100/50 dark:bg-red-500/10 border border-red-500/30 hover:bg-red-200 dark:hover:bg-red-500/30 text-red-600 dark:text-red-400 px-3 py-2 rounded-lg font-bold text-sm transition-all">
-            <RotateCcw size={16} /> <span className="hidden sm:inline">Reset!</span>
+          <button onClick={() => setResetConfirmOpen(true)} className="flex items-center gap-1 bg-red-100/50 dark:bg-red-500/10 border border-red-500/30 hover:bg-red-200 dark:hover:bg-red-500/30 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-lg font-bold text-xs transition-all">
+            <RotateCcw size={14} /> Reset!
           </button>
         </div>
 
@@ -313,9 +315,17 @@ const EmailManagerSection = () => {
     setEmails(prev => prev.map(e => e.id === id ? { ...e, selected: !e.selected } : e));
   };
 
+  // Toggle Copy State
   const handleCopy = (id: string, text: string) => {
-    navigator.clipboard.writeText(text);
-    setEmails(prev => prev.map(e => e.id === id ? { ...e, copied: true } : e));
+    setEmails(prev => prev.map(e => {
+      if (e.id === id) {
+        if (!e.copied) {
+          navigator.clipboard.writeText(text); // Only copy if enabling copy state
+        }
+        return { ...e, copied: !e.copied }; // Toggle state
+      }
+      return e;
+    }));
   };
 
   const resetPageCopies = () => {
@@ -343,7 +353,7 @@ const EmailManagerSection = () => {
 
   return (
     <>
-      <div className="bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 backdrop-blur-md shadow-sm h-full flex flex-col justify-between">
+      <div className="bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 backdrop-blur-md shadow-sm h-full flex flex-col justify-between w-full">
         
         {/* Header Row: Arrows + Title + Actions */}
         <div className="flex justify-between items-center mb-4">
@@ -359,11 +369,11 @@ const EmailManagerSection = () => {
             </button>
 
             {/* Title */}
-            <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2 select-none">
+            <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2 select-none text-base">
               NewTask Emails 
               <span className="text-blue-500">
                 ({isPageFullyCopied ? 
-                  <button onClick={resetPageCopies} className="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:scale-110 transition-transform"><RotateCcw size={12}/></button> 
+                  <button onClick={resetPageCopies} className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:scale-110 transition-transform"><RotateCcw size={10}/></button> 
                   : PAGES[pageIndex]})
               </span>
             </h3>
@@ -449,18 +459,29 @@ const EmailManagerSection = () => {
 };
 
 // --- NEW TASK PARENT COMPONENT ---
-const NewTaskApp = () => {
+const NewTaskApp = ({ onClose }: { onClose: () => void }) => {
   const [activeTab, setActiveTab] = useState<TabType>('self');
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex justify-center gap-4 mb-4 shrink-0">
+    <div className="h-full flex flex-col relative">
+      
+      {/* Sub-Menu Header */}
+      <div className="flex justify-center items-center gap-4 mb-3 shrink-0 relative">
         <button onClick={() => setActiveTab('self')} className={`flex items-center gap-2 px-6 py-2 rounded-full transition-all text-sm font-medium border ${activeTab === 'self' ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-white/20 dark:bg-white/5 border-transparent hover:bg-white/40 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400'}`}>
           <User size={16} /> Self
         </button>
         <button onClick={() => setActiveTab('office')} className={`flex items-center gap-2 px-6 py-2 rounded-full transition-all text-sm font-medium border ${activeTab === 'office' ? 'bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-500/20' : 'bg-white/20 dark:bg-white/5 border-transparent hover:bg-white/40 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400'}`}>
           <Building size={16} /> Office
         </button>
+
+        {/* Close Button Positioned in Sub-Menu Right */}
+        <button 
+          onClick={onClose} 
+          className="absolute right-0 top-1/2 -translate-y-1/2 group relative w-5 h-5 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-all shadow-sm"
+        >
+          <span className="opacity-0 group-hover:opacity-100 text-[10px] font-bold text-black/60 leading-none">x</span>
+        </button>
       </div>
+
       <div className="flex-1 overflow-hidden">
         {activeTab === 'self' ? (
            <div className="h-full flex flex-col gap-3 max-w-[95%] mx-auto">
@@ -487,7 +508,6 @@ const NewTaskApp = () => {
 export default function DashboardPage() {
   const { theme, setTheme } = useTheme();
   const [activeApp, setActiveApp] = useState<AppType | null>('newtask');
-  const [isMaximized, setIsMaximized] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => setIsClient(true), []);
@@ -500,15 +520,12 @@ export default function DashboardPage() {
     { id: 'snacks', icon: Coffee, label: 'Food & Beverage', color: 'text-pink-500' },
   ];
 
-  const handleClose = () => { setActiveApp(null); setIsMaximized(false); };
-  const handleMaximize = () => setIsMaximized(true);
-  const handleMinimize = () => setIsMaximized(false);
+  const handleClose = () => { setActiveApp(null); };
 
   if (!isClient) return null;
 
   return (
     <>
-      {/* Global Style for removing input spinners */}
       <style jsx global>{`
         .no-spinner::-webkit-inner-spin-button, 
         .no-spinner::-webkit-outer-spin-button { 
@@ -531,23 +548,22 @@ export default function DashboardPage() {
         {/* Main Container */}
         <motion.div 
           layout
-          className={`relative z-10 w-full max-w-[950px] transition-all duration-500 ease-spring
-            ${isMaximized ? 'fixed inset-4 max-w-none max-h-none h-auto z-50' : 'h-[95vh] max-h-[850px]'}
+          className={`relative z-10 w-full max-w-[950px] h-[95vh] max-h-[850px]
             bg-white/40 dark:bg-black/40 backdrop-blur-2xl border border-white/50 dark:border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-2xl
           `}
         >
           
-          {/* --- Header (Logo Right / Title Left) --- */}
-          <div className="flex items-center justify-between p-6 pb-2 shrink-0 select-none">
+          {/* --- Header (Reduced Padding) --- */}
+          <div className="flex items-center justify-between px-6 pt-4 pb-0 shrink-0 select-none">
             
             {/* Page Title (Top Left) */}
-            <h1 className="text-2xl font-bold tracking-tight text-gray-800 dark:text-white opacity-90 ml-2">
+            <h1 className="text-xl font-bold tracking-tight text-gray-800 dark:text-white opacity-90 ml-2">
                {activeApp ? menuItems.find(i => i.id === activeApp)?.label : "Dashboard"}
             </h1>
 
             {/* Logo + Theme (Top Right) */}
             <div className="flex items-center gap-6">
-               <div className="relative w-24 h-24 drop-shadow-2xl">
+               <div className="relative w-20 h-20 drop-shadow-2xl">
                   <Image src="https://iili.io/FC3KC6g.png" alt="Logo" fill className="object-contain" />
                </div>
                <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="p-3 rounded-full bg-white/20 dark:bg-white/5 hover:bg-white/40 transition-colors text-gray-800 dark:text-white">
@@ -586,24 +602,6 @@ export default function DashboardPage() {
 
             {/* App View */}
             <div className="flex-1 relative overflow-hidden bg-white/20 dark:bg-transparent backdrop-blur-sm">
-              
-              {/* Window Controls (Top Right of MENU PAGE) */}
-              {activeApp && (
-                <div className="absolute top-4 right-4 z-50 flex items-center gap-2 bg-white/40 dark:bg-black/40 p-1.5 rounded-full border border-black/5 dark:border-white/10 backdrop-blur-md shadow-sm">
-                  {isMaximized && (
-                    <button onClick={handleMinimize} className="group relative w-4 h-4 rounded-full bg-yellow-400 hover:bg-yellow-500 flex items-center justify-center transition-all shadow-sm">
-                      <span className="opacity-0 group-hover:opacity-100 text-[10px] font-bold text-black/60 leading-none mb-1">-</span>
-                    </button>
-                  )}
-                  <button onClick={handleMaximize} className="group relative w-4 h-4 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center transition-all shadow-sm">
-                    <span className="opacity-0 group-hover:opacity-100 text-[8px] font-bold text-black/60 leading-none">☐</span>
-                  </button>
-                  <button onClick={handleClose} className="group relative w-4 h-4 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-all shadow-sm">
-                    <span className="opacity-0 group-hover:opacity-100 text-[8px] font-bold text-black/60 leading-none">x</span>
-                  </button>
-                </div>
-              )}
-
               <AnimatePresence mode="wait">
                 {activeApp ? (
                   <motion.div 
@@ -612,12 +610,15 @@ export default function DashboardPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 1.02 }}
                     transition={{ duration: 0.2 }}
-                    className="h-full w-full flex flex-col p-6 pt-12"
+                    className="h-full w-full flex flex-col p-6 pt-6"
                   >
-                     {activeApp === 'newtask' && <NewTaskApp />}
+                     {activeApp === 'newtask' && <NewTaskApp onClose={handleClose} />}
                      {['entries','tracker','updates','snacks'].includes(activeApp) && (
-                       <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400 opacity-50 font-medium">
-                          Module Pending
+                       <div className="relative h-full flex flex-col">
+                         <div className="absolute right-0 top-0">
+                           <button onClick={handleClose} className="group relative w-5 h-5 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-all shadow-sm"><span className="opacity-0 group-hover:opacity-100 text-[10px] font-bold text-black/60 leading-none">x</span></button>
+                         </div>
+                         <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400 opacity-50 font-medium">Module Pending</div>
                        </div>
                      )}
                   </motion.div>
