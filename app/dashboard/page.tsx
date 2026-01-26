@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import Image from "next/image";
 import { 
-  CheckSquare, Table, Clock, Zap, Coffee, Sun, Moon 
+  CheckSquare, Table, Clock, Zap, Coffee, Sun, Moon, 
+  Play, Pause, X 
 } from "lucide-react";
 
-// Import separate components
+// Import components
 import Sidebar from "./components/Sidebar";
 import NewTaskApp from "./components/NewTaskApp";
 import EntriesApp from "./components/EntriesApp";
@@ -16,14 +17,143 @@ import TrackerApp from "./components/TrackerApp";
 import UpdatesApp from "./components/UpdatesApp";
 import SnacksApp from "./components/SnacksApp";
 
+// --- GLOBAL STOPWATCH HOOK ---
+const useStopwatch = (id: string) => {
+  const [state, setState] = useState({
+    startTime: 0,
+    elapsed: 0,
+    isRunning: false
+  });
+
+  // Load from LocalStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(`stopwatch_${id}`);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.isRunning) {
+        // Calculate missed time while browser was closed
+        const now = Date.now();
+        const additionalTime = now - parsed.lastTick;
+        setState({
+          startTime: parsed.startTime,
+          elapsed: parsed.elapsed + additionalTime,
+          isRunning: true
+        });
+      } else {
+        setState(parsed);
+      }
+    }
+  }, [id]);
+
+  // Save to LocalStorage & Tick
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (state.isRunning) {
+      localStorage.setItem(`stopwatch_${id}`, JSON.stringify({ ...state, lastTick: Date.now() }));
+      interval = setInterval(() => {
+        setState(prev => {
+          const newState = { ...prev, elapsed: Date.now() - prev.startTime };
+          localStorage.setItem(`stopwatch_${id}`, JSON.stringify({ ...newState, lastTick: Date.now() }));
+          return newState;
+        });
+      }, 1000);
+    } else {
+      localStorage.setItem(`stopwatch_${id}`, JSON.stringify({ ...state, lastTick: Date.now() }));
+    }
+    return () => clearInterval(interval);
+  }, [state.isRunning, state.startTime, id]);
+
+  const start = () => {
+    if (!state.isRunning) {
+      setState(prev => ({
+        ...prev,
+        startTime: Date.now() - prev.elapsed,
+        isRunning: true
+      }));
+    }
+  };
+
+  const pause = () => {
+    if (state.isRunning) {
+      setState(prev => ({ ...prev, isRunning: false }));
+    }
+  };
+
+  const reset = () => {
+    setState({ startTime: 0, elapsed: 0, isRunning: false });
+    localStorage.removeItem(`stopwatch_${id}`);
+  };
+
+  return { ...state, start, pause, reset };
+};
+
+// --- MINI BUBBLE COMPONENT ---
+const MiniStopwatch = ({ 
+  label, time, isRunning, onToggle, bottomOffset 
+}: { 
+  label: string, time: string, isRunning: boolean, onToggle: () => void, bottomOffset: string 
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Auto-expand if running, collapse if paused (optional, per user preference "expand when click... pause show only button")
+  // Adhering to strict instruction: "when stopwatch is pause show only rounded play button... when click... expand"
+  
+  return (
+    <div 
+      className={`fixed right-4 z-50 transition-all duration-300 flex items-center justify-end gap-2 ${bottomOffset}`}
+    >
+      <AnimatePresence>
+        {(isExpanded || isRunning) && (
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="bg-white/90 dark:bg-black/80 backdrop-blur-md border border-gray-200 dark:border-gray-800 rounded-full pl-4 pr-1 py-1 shadow-xl flex items-center gap-3"
+          >
+            <div className="flex flex-col leading-none">
+              <span className="text-[10px] uppercase font-bold text-gray-500">{label}</span>
+              <span className="font-mono font-bold text-gray-800 dark:text-white">{time}</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <button 
+        onClick={() => {
+           onToggle();
+           setIsExpanded(!isExpanded);
+        }}
+        className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all border
+          ${isRunning 
+            ? 'bg-orange-500 border-orange-600 text-white animate-pulse' 
+            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-green-500 hover:scale-110'
+          }
+        `}
+      >
+        {isRunning ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-1" />}
+      </button>
+    </div>
+  );
+};
+
 export default function DashboardPage() {
   const { theme, setTheme } = useTheme();
   const [activeApp, setActiveApp] = useState<string | null>('newtask');
   const [isClient, setIsClient] = useState(false);
 
+  // Global Stopwatch State
+  const generalSW = useStopwatch('general');
+  const newTaskSW = useStopwatch('newtask');
+
   useEffect(() => setIsClient(true), []);
 
-  // Menu Configuration with Colors
+  const formatTime = (ms: number) => {
+    const s = Math.floor(ms / 1000);
+    const m = Math.floor(s / 60);
+    const h = Math.floor(m / 60);
+    return `${h.toString().padStart(2, '0')}:${(m % 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
+  };
+
   const menuItems = [
     { id: 'newtask', icon: CheckSquare, label: 'NewTask Updates', color: 'text-blue-500', bgColor: 'bg-blue-500' },
     { id: 'entries', icon: Table, label: 'Daily Entry Counts', color: 'text-green-500', bgColor: 'bg-green-500' },
@@ -32,25 +162,35 @@ export default function DashboardPage() {
     { id: 'snacks', icon: Coffee, label: 'Food & Beverage', color: 'text-pink-500', bgColor: 'bg-pink-500' },
   ];
 
-  const handleClose = () => { setActiveApp(null); };
+  const handleClose = () => setActiveApp(null);
 
   if (!isClient) return null;
 
   return (
     <>
       <style jsx global>{`
-        .no-spinner::-webkit-inner-spin-button, 
-        .no-spinner::-webkit-outer-spin-button { 
-          -webkit-appearance: none; 
-          margin: 0; 
-        }
+        .no-spinner::-webkit-inner-spin-button, .no-spinner::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .no-spinner { -moz-appearance: textfield; }
-        
-        /* Custom Scrollbar for inner content */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(100,100,100,0.3); border-radius: 10px; }
       `}</style>
+
+      {/* Mini Stopwatches (Fixed Bottom Right) */}
+      <MiniStopwatch 
+        label="General" 
+        time={formatTime(generalSW.elapsed)} 
+        isRunning={generalSW.isRunning} 
+        onToggle={generalSW.isRunning ? generalSW.pause : generalSW.start}
+        bottomOffset="bottom-20"
+      />
+      <MiniStopwatch 
+        label="NewTask" 
+        time={formatTime(newTaskSW.elapsed)} 
+        isRunning={newTaskSW.isRunning} 
+        onToggle={newTaskSW.isRunning ? newTaskSW.pause : newTaskSW.start}
+        bottomOffset="bottom-4"
+      />
 
       <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-gray-200 dark:bg-[#050505] transition-colors duration-500 font-ubuntu">
         
@@ -82,10 +222,8 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex flex-1 overflow-hidden relative">
-            {/* Sidebar Component */}
             <Sidebar menuItems={menuItems} activeApp={activeApp} setActiveApp={setActiveApp} />
 
-            {/* App Content Area */}
             <div className="flex-1 relative overflow-hidden bg-white/20 dark:bg-transparent backdrop-blur-sm">
               <AnimatePresence mode="wait">
                 {activeApp ? (
@@ -98,10 +236,18 @@ export default function DashboardPage() {
                     className="h-full w-full flex flex-col p-6 pt-6"
                   >
                      {activeApp === 'newtask' && <NewTaskApp onClose={handleClose} />}
-                     {activeApp === 'tracker' && <TrackerApp onClose={handleClose} />}
-                     {activeApp === 'snacks' && <SnacksApp onClose={handleClose} />}
                      {activeApp === 'entries' && <EntriesApp onClose={handleClose} />}
+                     {/* Pass Global Stopwatch State to Tracker */}
+                     {activeApp === 'tracker' && (
+                       <TrackerApp 
+                         onClose={handleClose} 
+                         generalSW={generalSW} 
+                         newTaskSW={newTaskSW} 
+                         formatTime={formatTime} 
+                       />
+                     )}
                      {activeApp === 'updates' && <UpdatesApp onClose={handleClose} />}
+                     {activeApp === 'snacks' && <SnacksApp onClose={handleClose} />}
                   </motion.div>
                 ) : (
                   <div className="h-full w-full flex flex-col items-center justify-center text-center p-8 opacity-30">
