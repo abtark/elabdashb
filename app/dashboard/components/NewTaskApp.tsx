@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { 
   X, Check, RotateCcw, History, Compass, 
-  Plus, Trash2, ChevronLeft, ChevronRight, CheckSquare, Edit3
+  Plus, Trash2, ChevronLeft, ChevronRight, CheckSquare, Edit3,
+  User, Building // <--- Added these missing imports
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -394,7 +395,7 @@ const EmailManagerSection = () => {
           </div>
         </div>
 
-        {/* Email List - Styled like Image 3 */}
+        {/* Email List */}
         <div className="flex-1 flex flex-col justify-start gap-3 min-h-[220px]">
           {currentEmails.length === 0 ? (
             <div className="flex items-center justify-center h-full text-sm opacity-40 italic text-gray-500 dark:text-gray-400">
@@ -464,7 +465,6 @@ const EmailManagerSection = () => {
 
 // --- NEW TASK PARENT COMPONENT (Export Default) ---
 
-// Ensure this matches the import in page.tsx
 interface NewTaskAppProps {
   onClose: () => void;
 }
