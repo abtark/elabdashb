@@ -4,18 +4,22 @@ import React, { useState, useEffect } from "react";
 import { 
   X, Check, RotateCcw, History, Compass, 
   Plus, Trash2, ChevronLeft, ChevronRight, CheckSquare, Edit3,
-  User, Building, Link as LinkIcon, BarChart3, ArrowRight, ArrowLeft, Search, Clock
+  User, Building, Link as LinkIcon, ArrowRight, ArrowLeft, Search, Clock, Loader2
 } from "lucide-react";
+import { FaDiscord } from "react-icons/fa";
 import { motion } from "framer-motion";
 
-// --- UTILS & COMPONENTS ---
-// (Reusing simple modal component patterns inline or imported would be cleaner, but keeping full file structure for copy-paste reliability)
+// --- TYPES ---
+interface EmailItem {
+  id: string;
+  text: string;
+  copied: boolean;
+  selected: boolean;
+}
 
+// --- UTILS ---
 const CloseButton = ({ onClick }: { onClick: () => void }) => (
-  <button 
-    onClick={onClick} 
-    className="absolute right-0 top-1/2 -translate-y-1/2 group flex items-center bg-transparent border border-white/20 dark:border-white/10 rounded-full p-1.5 hover:bg-red-500 hover:border-red-500 hover:pr-3 transition-all duration-300 text-gray-500 dark:text-gray-400 hover:text-white"
-  >
+  <button onClick={onClick} className="absolute right-0 top-1/2 -translate-y-1/2 group flex items-center bg-transparent border border-white/20 dark:border-white/10 rounded-full p-1.5 hover:bg-red-500 hover:border-red-500 hover:pr-3 transition-all duration-300 text-gray-500 dark:text-gray-400 hover:text-white">
     <X size={16} />
     <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 text-xs font-bold ml-0 group-hover:ml-1 whitespace-nowrap">Close</span>
   </button>
@@ -27,8 +31,8 @@ const Modal = ({ isOpen, onClose, title, children }: any) => {
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
       <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold dark:text-white">{title}</h3>
-          <button onClick={onClose}><X size={20} className="opacity-50 hover:opacity-100" /></button>
+          <h3 className="text-lg font-bold text-gray-800 dark:text-white">{title}</h3>
+          <button onClick={onClose}><X size={20} className="text-gray-500 dark:text-gray-400 hover:opacity-100" /></button>
         </div>
         {children}
       </motion.div>
@@ -36,11 +40,28 @@ const Modal = ({ isOpen, onClose, title, children }: any) => {
   );
 };
 
-// ... (LinkedInSection, EmailManagerSection logic remains similar, re-included below for completeness) ...
+const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+      <motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center">
+        <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Confirmation</h3>
+        <p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p>
+        <div className="flex justify-center gap-4">
+          <button onClick={onClose} className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">No</button>
+          <button onClick={() => { onConfirm(); onClose(); }} className="px-4 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition-colors">Yes</button>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 
+// --- LINKEDIN SALES SECTION ---
 const LinkedInSection = () => {
   const [totalSales, setTotalSales] = useState<number | ''>('');
   const [currentPage, setCurrentPage] = useState<number | ''>('');
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+
   const calculate = () => {
     const total = Number(totalSales) || 0;
     const current = Number(currentPage) || 0;
@@ -48,35 +69,91 @@ const LinkedInSection = () => {
     const remain = approx > current ? approx - current : 0;
     return { approx, remain };
   };
+
   const { approx, remain } = calculate();
+
+  const handleReset = () => {
+    setTotalSales('');
+    setCurrentPage('');
+  };
+
   return (
-    <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 mb-3 backdrop-blur-md relative flex flex-col items-center gap-3 w-full">
-        <div className="w-full relative flex justify-center items-center">
-          <h3 className="font-bold text-blue-600 dark:text-blue-400 text-base">LinkedIn Sales Page Calculation</h3>
-          {(totalSales !== '' || currentPage !== '') && <button onClick={() => {setTotalSales(''); setCurrentPage('')}} className="absolute right-0 top-0 text-red-500 hover:bg-red-500/10 p-1 rounded-full"><RotateCcw size={16} /></button>}
+    <>
+      <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 mb-3 backdrop-blur-md shadow-sm relative flex flex-col gap-3 w-full">
+        
+        {/* Title + Reset Button Row */}
+        <div className="w-full flex justify-center items-center relative">
+          <h3 className="font-bold text-blue-600 dark:text-blue-400 text-base text-center">
+            LinkedIn Sales Page Calculation
+          </h3>
+          {(totalSales !== '' || currentPage !== '') && (
+            <button 
+              onClick={() => setResetConfirmOpen(true)} 
+              className="absolute right-0 flex items-center gap-1 text-xs font-bold text-red-500 hover:bg-red-500/10 px-2 py-1 rounded-lg transition-colors"
+            >
+              <RotateCcw size={12} /> Reset
+            </button>
+          )}
         </div>
-        <div className="flex items-center gap-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-blue-500/10 dark:bg-blue-500/20 px-3 py-1 rounded-full border border-blue-500/20">
-          <Compass size={12} className="text-blue-500" /> Default Leads <span className="text-blue-600">➜</span> <span className="font-bold text-blue-700 dark:text-blue-300">25</span>
+
+        {/* Default Leads Pill */}
+        <div className="flex justify-center">
+            <div className="flex items-center gap-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-blue-500/10 dark:bg-blue-500/20 px-4 py-1.5 rounded-full border border-blue-500/20">
+            <Compass size={12} className="text-blue-500" />
+            <span>Default Leads on SalesNav Page</span>
+            <span className="text-blue-600 dark:text-blue-400">➜</span>
+            <span className="font-bold text-blue-700 dark:text-blue-300">25</span>
+            </div>
         </div>
-        <div className="flex flex-nowrap items-center justify-between w-full mt-1 gap-2">
-          <div className="flex items-center gap-2">
-            <input type="number" placeholder="Total Results" value={totalSales} onChange={(e) => setTotalSales(e.target.value === '' ? '' : Number(e.target.value))} className="w-32 sm:w-40 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-sm outline-none no-spinner focus:border-blue-400" />
-            <div className="flex flex-col leading-none text-[10px] text-gray-500 dark:text-gray-400"><span>Approx.</span><span className="font-bold text-sm text-gray-800 dark:text-white">{approx}</span></div>
+
+        {/* Inputs & Results Row */}
+        <div className="flex flex-nowrap items-center justify-between w-full mt-1 gap-4">
+          
+          {/* Group 1 */}
+          <div className="flex items-center gap-3 flex-1">
+            <input 
+              type="number" 
+              placeholder="Total Sales Results"
+              value={totalSales}
+              onChange={(e) => setTotalSales(e.target.value === '' ? '' : Number(e.target.value))}
+              className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-2 px-3 text-center text-sm outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
+            />
+            <div className="flex items-center gap-1 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
+              <span>Approx. Page:</span>
+              <span className="font-bold text-sm text-gray-800 dark:text-white">{approx}</span>
+            </div>
           </div>
+
           <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
-          <div className="flex items-center gap-2">
-            <input type="number" placeholder="Current Page" value={currentPage} onChange={(e) => setCurrentPage(e.target.value === '' ? '' : Number(e.target.value))} className="w-32 sm:w-40 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-sm outline-none no-spinner focus:border-blue-400" />
-            <div className="flex flex-col leading-none text-[10px] text-gray-500 dark:text-gray-400"><span>Remain</span><span className="font-bold text-sm text-gray-800 dark:text-white">{remain}</span></div>
+
+          {/* Group 2 */}
+          <div className="flex items-center gap-3 flex-1">
+            <input 
+              type="number" 
+              placeholder="Current Sales Page"
+              value={currentPage}
+              onChange={(e) => setCurrentPage(e.target.value === '' ? '' : Number(e.target.value))}
+              className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-2 px-3 text-center text-sm outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
+            />
+            <div className="flex items-center gap-1 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
+               <span>Remain Page:</span>
+               <span className="font-bold text-sm text-gray-800 dark:text-white">{remain}</span>
+            </div>
           </div>
+
         </div>
-    </div>
+      </div>
+      <ConfirmModal isOpen={resetConfirmOpen} onClose={() => setResetConfirmOpen(false)} onConfirm={handleReset} message="Reset all LinkedIn calculation data?" />
+    </>
   );
 };
 
+// --- SENT LINKS SECTION ---
 const SentLinksSection = ({ total, setTotal }: { total: number, setTotal: (n: number) => void }) => {
   const [val, setVal] = useState<number | ''>('');
   const [logs, setLogs] = useState<{id:number, txt:string}[]>([]);
   const [showLogs, setShowLogs] = useState(false);
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
   const handleAdd = () => {
     const v = Number(val);
@@ -87,30 +164,160 @@ const SentLinksSection = ({ total, setTotal }: { total: number, setTotal: (n: nu
   };
 
   return (
-    <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-3 mb-3 backdrop-blur-md flex items-center justify-between w-full">
-       <div className="flex items-center gap-2">
-          <input type="number" placeholder="Enter" value={val} onChange={e => setVal(e.target.value === '' ? '' : Number(e.target.value))} onKeyDown={e => e.key === 'Enter' && handleAdd()} className="w-20 bg-white dark:bg-white/5 border border-blue-500/30 rounded-lg py-2 px-3 text-center font-bold outline-none no-spinner text-sm focus:border-blue-500" />
-          <button onClick={handleAdd} className="bg-blue-100 hover:bg-blue-200 dark:bg-blue-500/20 text-blue-600 p-2 rounded-lg"><Check size={18} strokeWidth={3} /></button>
-       </div>
-       <div className="flex items-center gap-2"><span className="text-blue-600 dark:text-blue-400 font-bold text-sm">Total Sent Links =</span><div className="bg-blue-100/50 dark:bg-blue-500/10 border border-blue-500/30 rounded-lg px-4 py-1.5 min-w-[60px] text-center font-bold text-blue-700 dark:text-blue-300">{total}</div></div>
-       <div className="flex items-center gap-2">
-          <button onClick={() => setShowLogs(true)} className="flex items-center gap-1 bg-white dark:bg-white/5 border border-blue-500/30 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold"><History size={14} /> Logs</button>
-          <button onClick={() => {if(confirm('Reset?')){setTotal(0); setLogs([]);}}} className="flex items-center gap-1 bg-red-50 dark:bg-red-500/10 border border-red-500/30 text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold"><RotateCcw size={14} /> Reset!</button>
-       </div>
-       <Modal isOpen={showLogs} onClose={() => setShowLogs(false)} title="Logs"><ul className="space-y-2 max-h-60 overflow-y-auto">{logs.map(l => <li key={l.id} className="text-sm border-b border-gray-100 dark:border-white/10 pb-1">{l.txt}</li>)}</ul></Modal>
-    </div>
+    <>
+      <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 mb-3 backdrop-blur-md shadow-sm flex items-center justify-between w-full gap-3">
+        
+        {/* Input Group */}
+        <div className="flex items-center gap-2">
+          <input 
+            type="number" 
+            placeholder="Enter" 
+            value={val}
+            onChange={(e) => setVal(e.target.value === '' ? '' : Number(e.target.value))}
+            onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+            className="w-24 bg-white dark:bg-white/5 border border-blue-500/30 rounded-lg py-2 px-3 text-center font-bold text-gray-800 dark:text-white outline-none placeholder:font-normal placeholder:text-gray-400 no-spinner text-sm focus:border-blue-500 transition-colors"
+          />
+          <button onClick={handleAdd} className="bg-blue-100 hover:bg-blue-200 dark:bg-blue-500/20 dark:hover:bg-blue-500/40 text-blue-600 dark:text-blue-300 border border-blue-500/30 p-2 rounded-lg transition-colors">
+            <Check size={18} strokeWidth={3} />
+          </button>
+        </div>
+
+        <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
+
+        {/* Total Display (Bigger Padding) */}
+        <div className="flex items-center gap-2">
+           <span className="text-blue-600 dark:text-blue-400 font-bold text-sm whitespace-nowrap">Total Sent Links =</span>
+           <div className="bg-blue-100/50 dark:bg-blue-500/10 border border-blue-500/30 rounded-lg px-8 py-2 min-w-[80px] text-center">
+             <span className="text-lg font-bold text-blue-700 dark:text-blue-300">{total}</span>
+           </div>
+        </div>
+
+        <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
+
+        {/* Actions (Same Padding) */}
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowLogs(true)} className="flex items-center gap-1 bg-white dark:bg-white/5 border border-blue-500/30 hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-lg font-bold text-xs transition-all">
+            <History size={14} /> Logs
+          </button>
+          <button onClick={() => setResetConfirmOpen(true)} className="flex items-center gap-1 bg-red-50 dark:bg-red-500/10 border border-red-500/30 hover:bg-red-100 dark:hover:bg-red-500/30 text-red-600 dark:text-red-400 px-4 py-2 rounded-lg font-bold text-xs transition-all">
+            <RotateCcw size={14} /> Reset!
+          </button>
+        </div>
+
+        <ConfirmModal isOpen={resetConfirmOpen} onClose={() => setResetConfirmOpen(false)} onConfirm={() => {setTotal(0); setLogs([])}} message="Reset total sent links and logs?" />
+        <Modal isOpen={showLogs} onClose={() => setShowLogs(false)} title="Logs"><ul className="space-y-2 max-h-60 overflow-y-auto">{logs.map(l => <li key={l.id} className="text-sm border-b border-gray-100 dark:border-white/10 pb-1 text-gray-700 dark:text-gray-300">{l.txt}</li>)}</ul></Modal>
+      </div>
+    </>
   );
 };
 
+// --- EMAIL MANAGER (Restored) ---
 const EmailManagerSection = () => {
-  // (Simplified for brevity, assume full logic from previous iteration is here, just ensure it renders)
-  return <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-5 backdrop-blur-md h-full flex flex-col justify-center items-center text-gray-400 italic">Email Manager Module Loaded</div>; 
+  const [emails, setEmails] = useState<EmailItem[]>([]);
+  const [pageIndex, setPageIndex] = useState(0); 
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [bulkInput, setBulkInput] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  
+  // Persistence
+  useEffect(() => {
+    const saved = localStorage.getItem('newTaskEmails');
+    if (saved) setEmails(JSON.parse(saved));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('newTaskEmails', JSON.stringify(emails));
+  }, [emails]);
+
+  const ITEMS_PER_PAGE = 5;
+  const PAGES = ['A', 'B', 'C', 'D', 'E']; 
+  const startIndex = pageIndex * ITEMS_PER_PAGE;
+  const currentEmails = emails.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const handleAddEmails = () => {
+    const rawList = bulkInput.split(/[\n,\s]+/).filter(s => s.trim().length > 0);
+    let addedCount = 0;
+    const newEmails = [...emails];
+    rawList.forEach(text => {
+      if (newEmails.length >= 25) return;
+      const cleanText = text.trim();
+      if (isValidEmail(cleanText) && !newEmails.some(e => e.text === cleanText)) {
+        newEmails.push({ id: Math.random().toString(36).substr(2, 9), text: cleanText, copied: false, selected: false });
+        addedCount++;
+      }
+    });
+    if (addedCount > 0) {
+      setEmails(newEmails);
+      setBulkInput("");
+      setIsAddModalOpen(false);
+      setPageIndex(Math.floor((newEmails.length - 1) / ITEMS_PER_PAGE));
+    } else alert("No valid/unique emails or full.");
+  };
+
+  const handleDeleteSelected = () => setEmails(prev => prev.filter(e => !e.selected));
+  const toggleSelect = (id: string) => setEmails(prev => prev.map(e => e.id === id ? { ...e, selected: !e.selected } : e));
+  const handleCopy = (id: string, text: string) => {
+    setEmails(prev => prev.map(e => e.id === id ? { ...e, copied: !e.copied } : e));
+    navigator.clipboard.writeText(text);
+  };
+  const resetPageCopies = () => {
+    const pageIds = currentEmails.map(e => e.id);
+    setEmails(prev => prev.map(e => pageIds.includes(e.id) ? { ...e, copied: false } : e));
+  };
+  const startEdit = (email: EmailItem) => { setEditingId(email.id); setEditValue(email.text); };
+  const saveEdit = () => {
+    if (editingId && isValidEmail(editValue)) {
+       if (!emails.some(e => e.text === editValue && e.id !== editingId)) {
+         setEmails(prev => prev.map(e => e.id === editingId ? { ...e, text: editValue } : e));
+         setEditingId(null);
+       } else alert("Email exists.");
+    }
+  };
+  const isPageFullyCopied = currentEmails.length > 0 && currentEmails.every(e => e.copied);
+
+  return (
+    <>
+      <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-5 backdrop-blur-md shadow-sm h-full flex flex-col justify-between w-full">
+        <div className="flex justify-between items-center mb-4 select-none">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setPageIndex(p => Math.max(0, p - 1))} disabled={pageIndex === 0} className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-20 text-gray-500 dark:text-gray-400 transition-colors"><ChevronLeft size={18} /></button>
+            <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2 text-base">NewTask Emails <span className="text-blue-600 dark:text-blue-400">({isPageFullyCopied ? <button onClick={resetPageCopies} className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:scale-110"><RotateCcw size={10}/></button> : PAGES[pageIndex]})</span></h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <button disabled={emails.length >= 25} onClick={() => setIsAddModalOpen(true)} className="p-1.5 rounded-lg bg-blue-600 text-white disabled:opacity-50 hover:bg-blue-500 transition-all"><Plus size={18} /></button>
+            <button disabled={!emails.some(e => e.selected)} onClick={() => setDeleteConfirmOpen(true)} className="p-1.5 rounded-lg bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-200"><Trash2 size={18} /></button>
+            <button onClick={() => setPageIndex(p => Math.min(4, p + 1))} disabled={pageIndex === 4} className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-20 text-gray-500 dark:text-gray-400 transition-colors"><ChevronRight size={18} /></button>
+          </div>
+        </div>
+        <div className="flex-1 flex flex-col justify-start gap-3 min-h-[220px]">
+          {currentEmails.length === 0 ? <div className="flex items-center justify-center h-full text-sm opacity-40 italic text-gray-500 dark:text-gray-400">Page {PAGES[pageIndex]} is empty</div> : 
+            currentEmails.map(email => (
+              <div key={email.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 shadow-sm transition-all hover:shadow-md">
+                <button onClick={() => startEdit(email)} className="text-gray-400 hover:text-blue-500 p-1"><Edit3 size={16} /></button>
+                {editingId === email.id ? 
+                  <div className="flex-1 flex gap-2"><input value={editValue} onChange={(e) => setEditValue(e.target.value)} className="flex-1 bg-gray-50 dark:bg-black border border-blue-500 rounded px-2 py-1 text-sm outline-none text-gray-900 dark:text-white" autoFocus /><button onClick={saveEdit} className="text-green-500"><Check size={16} /></button></div> 
+                  : <span onClick={() => handleCopy(email.id, email.text)} className={`flex-1 text-sm cursor-pointer select-none text-center font-medium transition-all ${email.copied ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-700 dark:text-gray-300'}`}>{email.text}</span>}
+                <button onClick={() => toggleSelect(email.id)} className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${email.selected ? 'bg-blue-500 border-blue-500 text-white' : 'border-gray-300 dark:border-gray-500 hover:border-blue-400 text-transparent'}`}><Check size={12} /></button>
+              </div>
+            ))
+          }
+        </div>
+        <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Add Emails"><textarea value={bulkInput} onChange={(e) => setBulkInput(e.target.value)} placeholder="Enter emails" className="w-full h-40 bg-gray-50 dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-lg p-3 text-sm outline-none focus:border-blue-500 mb-4 font-mono resize-none text-gray-800 dark:text-white" /><button onClick={handleAddEmails} className="px-6 py-2 bg-blue-600 rounded-lg text-white text-sm hover:bg-blue-500 font-medium w-full">Add Emails</button></Modal>
+        <ConfirmModal isOpen={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)} onConfirm={handleDeleteSelected} message="Delete selected?" />
+      </div>
+    </>
+  );
 };
 
-// --- OFFICE PAGE COMPONENT ---
-const OfficePage = () => {
+// --- OFFICE PAGE ---
+const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
   const [target, setTarget] = useState(10000);
   const [inputs, setInputs] = useState<Record<string, string>>({});
+  const [isSending, setIsSending] = useState(false);
+  const [isSent, setIsSent] = useState(false);
   
   const hours = ['08 AM', '09 AM', '10 AM', '11 AM', '12 PM', '01 PM', '02 PM', '03 PM', '04 PM', '05 PM', '06 PM', '07 PM', '08 PM'];
 
@@ -125,10 +332,33 @@ const OfficePage = () => {
   };
 
   const { sales, search, total } = calculateTotals();
-  const needed = Math.max(0, target - total);
+  const needed = Math.max(0, target - totalSentLinks); // Using Global Total Sent Links
 
   const handleInput = (type: 'sales' | 'search', index: number, val: string) => {
     setInputs(prev => ({ ...prev, [`${type}-${index}`]: val }));
+  };
+
+  const sendToDiscord = async () => {
+    setIsSending(true);
+    setIsSent(false);
+    
+    // Message Format
+    const content = `Sent Links: **${totalSentLinks}**\n\nNeed to send more **${needed.toLocaleString()}** links to reach **${target/1000}k** Milestone`;
+    const webhookURL = "https://discord.com/api/webhooks/1466497164157911042/Cxc4IR1RJ0idOh-ctI5pyHYnODdHo4Hpk30qn3L7edcv960mzkg62BIaA-N0xmlIyDzV";
+
+    try {
+      await fetch(webhookURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content })
+      });
+      setIsSending(false);
+      setIsSent(true);
+      setTimeout(() => setIsSent(false), 2000);
+    } catch (e) {
+      alert("Failed to send.");
+      setIsSending(false);
+    }
   };
 
   return (
@@ -145,21 +375,35 @@ const OfficePage = () => {
          </div>
          <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 font-bold">
-               <LinkIcon size={16} /> Total Sent Links: <span className="bg-white dark:bg-black/20 px-3 py-1 rounded-lg border border-blue-300">{total}</span>
+               <LinkIcon size={16} /> Total Sent Links: <span className="bg-white dark:bg-black/20 px-6 py-1 rounded-lg border border-blue-300">{totalSentLinks}</span>
             </div>
-            <button className="flex items-center gap-1 text-xs bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600"><BarChart3 size={14}/> View Chart</button>
-            <button onClick={() => {if(confirm('Reset Office Data?')) setInputs({})}} className="text-red-500 hover:bg-red-100 p-1.5 rounded-lg"><RotateCcw size={16}/></button>
+            
+            {/* Discord Send Button */}
+            <button 
+               onClick={sendToDiscord} 
+               disabled={isSending || isSent}
+               className={`flex items-center gap-1.5 text-xs text-white px-4 py-1.5 rounded-lg transition-all shadow-sm
+                  ${isSent ? 'bg-green-500 hover:bg-green-600' : 'bg-[#5865F2] hover:bg-[#4752C4]'}
+               `}
+            >
+               {isSending ? <Loader2 size={14} className="animate-spin" /> : isSent ? <Check size={14} /> : <FaDiscord size={14}/>}
+               {isSent ? 'Sent' : 'Send Updates'}
+            </button>
+
+            <button onClick={() => {if(confirm('Reset Office Data?')) setInputs({})}} className="flex items-center gap-1 text-xs text-red-500 border border-red-500/30 hover:bg-red-50 dark:hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors">
+               <RotateCcw size={12}/> Reset
+            </button>
          </div>
       </div>
 
       {/* Milestone */}
-      <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-6 text-center">
-         <h3 className="text-xl font-bold text-gray-700 dark:text-white mb-1">Sent Links: {total}</h3>
+      <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-6 text-center shadow-sm">
+         <h3 className="text-xl font-bold text-gray-700 dark:text-white mb-1">Sent Links: {totalSentLinks}</h3>
          <p className="text-red-500 font-medium text-sm">Need to send more <span className="font-bold text-red-600">{needed.toLocaleString()}</span> links to reach {target/1000}k Milestone</p>
       </div>
 
       {/* Grid Inputs */}
-      <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4">
+      <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 shadow-sm">
          <div className="grid grid-cols-[1fr_80px_1fr] gap-4 mb-4 text-center font-bold text-blue-600 dark:text-blue-400 text-sm">
             <div className="flex items-center justify-center gap-2">Sales <Compass size={14}/></div>
             <div><Clock size={14} className="mx-auto"/></div>
@@ -186,6 +430,7 @@ const OfficePage = () => {
   );
 };
 
+// --- PARENT ---
 interface NewTaskAppProps {
   onClose: () => void;
   totalSentLinks: number;
@@ -217,7 +462,7 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks 
              </div>
            </div>
         ) : (
-          <OfficePage />
+          <OfficePage totalSentLinks={totalSentLinks} />
         )}
       </div>
     </div>
