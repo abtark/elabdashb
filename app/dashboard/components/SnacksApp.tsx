@@ -1,6 +1,7 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { User, Coffee, X, Edit2, Check, Send } from "lucide-react";
+import { FaDiscord } from "react-icons/fa"; // Importing FontAwesome for Discord
 import { motion } from "framer-motion";
 
 // --- Types ---
@@ -15,8 +16,8 @@ interface SnackRow {
   day: string;
   morning: string;
   evening: string;
-  // We track selection by storing the specific "slot" selected (e.g., "Sat-Morning")
-  // instead of boolean flags on every object to easily enforce single selection.
+  editingMorning: boolean;
+  editingEvening: boolean;
 }
 
 // --- UTILS ---
@@ -46,24 +47,44 @@ export default function SnacksApp({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     setIsClient(true);
     
-    // Load Persons
+    // Load Persons (Default to 20)
     const savedPersons = localStorage.getItem('snacks_persons');
     if (savedPersons) {
-      setPersons(JSON.parse(savedPersons));
+      let parsed = JSON.parse(savedPersons);
+      // If we saved less than 20 previously, expand it
+      if (parsed.length < 20) {
+         const diff = 20 - parsed.length;
+         const newOnes = Array.from({length: diff}, (_, i) => ({ 
+             id: parsed.length + i + 1, 
+             name: `Person ${parsed.length + i + 1}`, 
+             checked: false, 
+             editing: false 
+         }));
+         parsed = [...parsed, ...newOnes];
+      }
+      setPersons(parsed);
     } else {
-      setPersons(Array.from({length:16}, (_, i) => ({ id: i+1, name: `Person ${i+1}`, checked: false, editing: false })));
+      setPersons(Array.from({length:20}, (_, i) => ({ id: i+1, name: `Person ${i+1}`, checked: false, editing: false })));
     }
 
     // Load Snacks
     const savedSnacks = localStorage.getItem('weekly_snacks_fixed');
     if (savedSnacks) {
-      setSnackRows(JSON.parse(savedSnacks));
+      // Ensure editing flags exist
+      const parsed = JSON.parse(savedSnacks).map((r: any) => ({
+          ...r, 
+          editingMorning: false, 
+          editingEvening: false 
+      }));
+      setSnackRows(parsed);
     } else {
       // Default Init (Sat - Fri)
       const defaults = DAYS.map(day => ({
         day,
         morning: 'Morning Snacks',
-        evening: 'Evening Snacks'
+        evening: 'Evening Snacks',
+        editingMorning: false,
+        editingEvening: false
       }));
       setSnackRows(defaults);
     }
@@ -77,7 +98,9 @@ export default function SnacksApp({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
      if (isClient && snackRows.length > 0) {
-        localStorage.setItem('weekly_snacks_fixed', JSON.stringify(snackRows));
+        // Strip editing state before saving to clean up storage
+        const toSave = snackRows.map(({ day, morning, evening }) => ({ day, morning, evening }));
+        localStorage.setItem('weekly_snacks_fixed', JSON.stringify(toSave));
      }
   }, [snackRows, isClient]);
 
@@ -96,12 +119,26 @@ export default function SnacksApp({ onClose }: { onClose: () => void }) {
   }
 
   // Snacks Handlers
+  const toggleSnackEdit = (index: number, field: 'morning' | 'evening') => {
+      setSnackRows(prev => prev.map((row, i) => {
+          if (i === index) {
+              return field === 'morning' 
+                  ? { ...row, editingMorning: !row.editingMorning } 
+                  : { ...row, editingEvening: !row.editingEvening };
+          }
+          return row;
+      }));
+  };
+
   const updateSnackText = (index: number, field: 'morning' | 'evening', val: string) => {
     setSnackRows(prev => prev.map((row, i) => i === index ? { ...row, [field]: val } : row));
   };
 
   const handleSlotClick = (index: number, type: 'morning' | 'evening') => {
-    // Toggle: if clicking same slot, deselect it. Otherwise select new one.
+    // If editing, don't select
+    const row = snackRows[index];
+    if ((type === 'morning' && row.editingMorning) || (type === 'evening' && row.editingEvening)) return;
+
     if (selectedSlot?.dayIndex === index && selectedSlot?.type === type) {
         setSelectedSlot(null);
     } else {
@@ -114,11 +151,12 @@ export default function SnacksApp({ onClose }: { onClose: () => void }) {
     
     const row = snackRows[selectedSlot.dayIndex];
     const snackName = selectedSlot.type === 'morning' ? row.morning : row.evening;
-    const timeLabel = selectedSlot.type === 'morning' ? 'Morning' : 'Evening';
+    const timeLabel = selectedSlot.type === 'morning' ? 'Morning Snacks' : 'Evening Snacks';
     
-    const content = `**Snack Selection:**\nDay: ${row.day}\nTime: ${timeLabel}\nItem: ${snackName}`;
+    // Requested Format: "Morning Snacks: [Snacks]"
+    const content = `${timeLabel}: ${snackName}`;
     
-    // User provided Webhook
+    // Webhook
     const webhookURL = "https://discord.com/api/webhooks/1414810052816011326/-dKyfHXA8f3y9LutcepbkvQIwiAkyAb_pWClYFvaiapfbmdP__KXzlYe1yd441i59qPQ";
 
     try {
@@ -128,7 +166,7 @@ export default function SnacksApp({ onClose }: { onClose: () => void }) {
         body: JSON.stringify({ content })
       });
       alert("Sent to Discord!");
-      setSelectedSlot(null); // Optional: clear selection after send
+      setSelectedSlot(null); 
     } catch (e) {
       alert("Failed to send.");
       console.error(e);
@@ -140,19 +178,14 @@ export default function SnacksApp({ onClose }: { onClose: () => void }) {
   const noSnackCount = persons.filter(p => p.checked).length;
   const takingCount = totalPersons - noSnackCount;
 
-  // Day Highlight Logic
-  // JS getDay(): 0=Sun, 1=Mon ... 6=Sat.
-  // Our Array: 0=Sat, 1=Sun ... 6=Fri.
-  // Mapping JS Day to Array Index:
+  // Day Highlight
   const currentJsDay = new Date().getDay(); 
-  // If Sun(0) -> Index 1. If Sat(6) -> Index 0. If Mon(1) -> Index 2.
-  // Formula: (jsDay + 1) % 7
   const todayRowIndex = (currentJsDay + 1) % 7; 
 
   if (!isClient) return null;
 
   return (
-    <div className="h-full flex flex-col relative gap-4 font-ubuntu">
+    <div className="h-full flex flex-col relative gap-3 font-ubuntu">
       {/* Header Menu */}
       <div className="flex justify-center items-center gap-4 shrink-0 relative min-h-[40px]">
         <button onClick={() => setActiveTab('person')} className={`flex items-center gap-2 px-6 py-2 rounded-full text-sm font-medium border transition-all ${activeTab === 'person' ? 'bg-pink-500 border-pink-500 text-white shadow-md' : 'bg-white/20 border-transparent text-gray-600 dark:text-gray-400 hover:bg-white/30'}`}><User size={16} /> Person</button>
@@ -162,38 +195,38 @@ export default function SnacksApp({ onClose }: { onClose: () => void }) {
 
       <div className="flex-1 overflow-hidden">
         {activeTab === 'person' ? (
-          <div className="h-full flex flex-col gap-4 max-w-[95%] mx-auto">
+          <div className="h-full flex flex-col gap-3 max-w-[95%] mx-auto">
              
-             {/* Top Stats */}
-             <div className="flex items-center justify-around bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-3 shadow-sm backdrop-blur-md text-center">
-                <div><div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Total</div><div className="text-xl font-bold text-blue-600 dark:text-blue-400">{totalPersons}</div></div>
-                <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
-                <div><div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">No Snack</div><div className="text-xl font-bold text-red-500">{noSnackCount}</div></div>
-                <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
-                <div><div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Taking</div><div className="text-xl font-bold text-green-500">{takingCount}</div></div>
+             {/* Top Stats - More Compact */}
+             <div className="flex items-center justify-around bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-2 shadow-sm backdrop-blur-md text-center shrink-0">
+                <div><div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Total</div><div className="text-lg font-bold text-blue-600 dark:text-blue-400 leading-none">{totalPersons}</div></div>
+                <div className="w-px h-6 bg-gray-300 dark:bg-white/10"></div>
+                <div><div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">No Snack</div><div className="text-lg font-bold text-red-500 leading-none">{noSnackCount}</div></div>
+                <div className="w-px h-6 bg-gray-300 dark:bg-white/10"></div>
+                <div><div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Taking</div><div className="text-lg font-bold text-green-500 leading-none">{takingCount}</div></div>
              </div>
 
-             {/* Person List */}
+             {/* Person List - Very Compact Grid */}
              <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 pb-2">
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {persons.map(p => (
-                    <div key={p.id} className={`flex items-center justify-between p-3 rounded-xl border transition-all shadow-sm ${p.checked ? 'bg-red-500/10 border-red-500/30 dark:bg-red-900/10' : 'bg-white/60 dark:bg-white/5 border-white/40 dark:border-white/10 hover:bg-white/80 dark:hover:bg-white/10'}`}>
-                      <div className="flex items-center gap-3 flex-1">
-                         <button onClick={() => toggleEditPerson(p.id)} className="text-gray-400 hover:text-blue-500 p-1 rounded-full hover:bg-blue-50 dark:hover:bg-white/5 transition-colors">{p.editing ? <Check size={16} className="text-green-500"/> : <Edit2 size={16}/>}</button>
+                    <div key={p.id} className={`flex items-center justify-between px-3 py-1.5 rounded-lg border transition-all shadow-sm ${p.checked ? 'bg-red-500/10 border-red-500/30 dark:bg-red-900/20' : 'bg-white/60 dark:bg-white/5 border-white/40 dark:border-white/10 hover:bg-white/80 dark:hover:bg-white/10'}`}>
+                      <div className="flex items-center gap-2 flex-1">
+                         <button onClick={() => toggleEditPerson(p.id)} className="text-gray-400 hover:text-blue-500 p-1 rounded-full hover:bg-blue-50 dark:hover:bg-white/5 transition-colors">{p.editing ? <Check size={14} className="text-green-500"/> : <Edit2 size={14}/>}</button>
                          {p.editing ? (
-                           <input className="bg-white dark:bg-black/40 border border-blue-400 rounded px-2 py-1 text-sm outline-none w-full font-medium text-gray-800 dark:text-white" value={p.name} onChange={e => updatePersonName(p.id, e.target.value)} autoFocus onKeyDown={e => e.key === 'Enter' && toggleEditPerson(p.id)} />
+                           <input className="bg-white dark:bg-black/40 border border-blue-400 rounded px-1.5 py-0.5 text-xs outline-none w-full font-medium text-gray-800 dark:text-white" value={p.name} onChange={e => updatePersonName(p.id, e.target.value)} autoFocus onKeyDown={e => e.key === 'Enter' && toggleEditPerson(p.id)} />
                          ) : (
-                           <span className="text-sm font-medium select-none text-gray-800 dark:text-white transition-colors">{p.name}</span>
+                           <span className={`text-sm font-medium select-none truncate ${p.checked ? 'text-red-600 dark:text-red-400 opacity-70' : 'text-gray-800 dark:text-gray-200'}`}>{p.name}</span>
                          )}
                       </div>
                       
-                      {/* Animated Toggle Switch */}
-                      <div onClick={() => togglePersonCheck(p.id)} className={`cursor-pointer w-11 h-6 rounded-full p-1 flex items-center shadow-inner transition-colors duration-300 ${p.checked ? 'bg-red-500' : 'bg-gray-300 dark:bg-gray-600'}`}>
+                      {/* Animated Toggle - Initial State Fixed */}
+                      <div onClick={() => togglePersonCheck(p.id)} className={`cursor-pointer w-9 h-5 rounded-full p-0.5 flex items-center shadow-inner transition-colors duration-300 ${p.checked ? 'bg-red-500' : 'bg-gray-300 dark:bg-gray-600'}`}>
                         <motion.div 
-                          layout 
+                          initial={{ x: p.checked ? 16 : 0 }} // Fix for toggle jumping on load
+                          animate={{ x: p.checked ? 16 : 0 }}
+                          transition={{ type: "spring", stiffness: 700, damping: 30 }}
                           className="w-4 h-4 bg-white rounded-full shadow-sm"
-                          animate={{ x: p.checked ? 20 : 0 }}
-                          transition={{ type: "spring", stiffness: 500, damping: 30 }}
                         />
                       </div>
                     </div>
@@ -232,41 +265,50 @@ export default function SnacksApp({ onClose }: { onClose: () => void }) {
 
                            {/* Morning Slot */}
                            <div 
-                              onClick={(e) => {
-                                 // Only select if not clicking input
-                                 if(e.target instanceof HTMLInputElement) return;
-                                 handleSlotClick(index, 'morning');
-                              }}
-                              className={`relative p-2 border-r border-gray-100 dark:border-white/5 cursor-pointer transition-all duration-200
+                              onClick={() => handleSlotClick(index, 'morning')}
+                              className={`relative p-2 border-r border-gray-100 dark:border-white/5 cursor-pointer transition-all duration-200 flex items-center gap-2
                                  ${isSelectedMorning ? 'bg-blue-100/50 dark:bg-blue-500/20 inset-shadow' : ''}
                               `}
                            >
-                              <input 
-                                 value={row.morning} 
-                                 onChange={e => updateSnackText(index, 'morning', e.target.value)} 
-                                 className="w-full bg-transparent border-none outline-none text-center text-gray-800 dark:text-gray-200 placeholder:text-gray-400"
-                                 placeholder="Enter Item"
-                              />
-                              {isSelectedMorning && <div className="absolute top-1 right-1 text-blue-500"><Check size={12} strokeWidth={4}/></div>}
+                              <button onClick={(e) => { e.stopPropagation(); toggleSnackEdit(index, 'morning'); }} className="text-gray-400 hover:text-blue-500 flex-shrink-0">
+                                  {row.editingMorning ? <Check size={14} className="text-green-500"/> : <Edit2 size={14}/>}
+                              </button>
+                              
+                              {row.editingMorning ? (
+                                <input 
+                                   value={row.morning} 
+                                   onChange={e => updateSnackText(index, 'morning', e.target.value)} 
+                                   className="w-full bg-white/50 border-b border-blue-400 outline-none text-gray-800 dark:text-white text-center text-xs py-1"
+                                   autoFocus
+                                   onClick={e => e.stopPropagation()}
+                                />
+                              ) : (
+                                <span className={`flex-1 text-center select-none ${isSelectedMorning ? 'font-bold text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>{row.morning}</span>
+                              )}
                            </div>
 
                            {/* Evening Slot */}
                            <div 
-                              onClick={(e) => {
-                                 if(e.target instanceof HTMLInputElement) return;
-                                 handleSlotClick(index, 'evening');
-                              }}
-                              className={`relative p-2 cursor-pointer transition-all duration-200
+                              onClick={() => handleSlotClick(index, 'evening')}
+                              className={`relative p-2 cursor-pointer transition-all duration-200 flex items-center gap-2
                                  ${isSelectedEvening ? 'bg-blue-100/50 dark:bg-blue-500/20 inset-shadow' : ''}
                               `}
                            >
-                              <input 
-                                 value={row.evening} 
-                                 onChange={e => updateSnackText(index, 'evening', e.target.value)} 
-                                 className="w-full bg-transparent border-none outline-none text-center text-gray-800 dark:text-gray-200 placeholder:text-gray-400"
-                                 placeholder="Enter Item"
-                              />
-                              {isSelectedEvening && <div className="absolute top-1 right-1 text-blue-500"><Check size={12} strokeWidth={4}/></div>}
+                              <button onClick={(e) => { e.stopPropagation(); toggleSnackEdit(index, 'evening'); }} className="text-gray-400 hover:text-blue-500 flex-shrink-0">
+                                  {row.editingEvening ? <Check size={14} className="text-green-500"/> : <Edit2 size={14}/>}
+                              </button>
+
+                              {row.editingEvening ? (
+                                <input 
+                                   value={row.evening} 
+                                   onChange={e => updateSnackText(index, 'evening', e.target.value)} 
+                                   className="w-full bg-white/50 border-b border-blue-400 outline-none text-gray-800 dark:text-white text-center text-xs py-1"
+                                   autoFocus
+                                   onClick={e => e.stopPropagation()}
+                                />
+                              ) : (
+                                <span className={`flex-1 text-center select-none ${isSelectedEvening ? 'font-bold text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>{row.evening}</span>
+                              )}
                            </div>
                         </div>
                      )
@@ -279,7 +321,7 @@ export default function SnacksApp({ onClose }: { onClose: () => void }) {
                onClick={sendToDiscord}
                className="w-full py-3 bg-[#5865F2] hover:bg-[#4752C4] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 shrink-0 active:scale-95"
             >
-               <Send size={18} /> Send Selected to Discord
+               <FaDiscord size={20} /> Send Selected to Discord
             </button>
           </div>
         )}
