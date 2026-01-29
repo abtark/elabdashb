@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { 
   X, Check, RotateCcw, History, Compass, 
   Plus, Trash2, ChevronLeft, ChevronRight, CheckSquare, Edit3,
-  User, Building, Link as LinkIcon, ArrowRight, ArrowLeft, Search, Clock, Loader2
+  User, Building, Link as LinkIcon, ArrowRight, ArrowLeft, Search, Clock, Loader2, AlertCircle
 } from "lucide-react";
 import { FaDiscord } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,7 +28,7 @@ const CloseButton = ({ onClick }: { onClick: () => void }) => (
 const Modal = ({ isOpen, onClose, title, children }: any) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+    <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 rounded-3xl">
       <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold text-gray-800 dark:text-white">{title}</h3>
@@ -43,7 +43,7 @@ const Modal = ({ isOpen, onClose, title, children }: any) => {
 const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+    <div className="absolute inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 rounded-3xl">
       <motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center">
         <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Confirmation</h3>
         <p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p>
@@ -51,6 +51,20 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => {
           <button onClick={onClose} className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">No</button>
           <button onClick={() => { onConfirm(); onClose(); }} className="px-4 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition-colors">Yes</button>
         </div>
+      </motion.div>
+    </div>
+  );
+};
+
+// New Alert Modal for replacing browser alert()
+const AlertModal = ({ isOpen, onClose, message }: any) => {
+  if (!isOpen) return null;
+  return (
+    <div className="absolute inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 rounded-3xl">
+      <motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center flex flex-col items-center gap-4">
+        <AlertCircle size={48} className="text-orange-500" />
+        <p className="text-gray-800 dark:text-white font-medium text-center">{message}</p>
+        <button onClick={onClose} className="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors">OK</button>
       </motion.div>
     </div>
   );
@@ -105,40 +119,38 @@ const LinkedInSection = () => {
             </div>
         </div>
 
-        {/* Inputs & Results Row */}
-        <div className="flex flex-nowrap items-center justify-between w-full mt-1 gap-4">
+        {/* Inputs & Results Row - Fixed Widths to prevent Jitter */}
+        <div className="flex flex-nowrap items-center justify-center w-full mt-1 gap-6">
           
           {/* Group 1 */}
-          <div className="flex items-center gap-3 flex-1 justify-center">
+          <div className="flex items-center gap-3 w-[240px] justify-end">
             <input 
               type="number" 
               placeholder="Total Sales Results"
               value={totalSales}
               onChange={(e) => setTotalSales(e.target.value === '' ? '' : Number(e.target.value))}
-              // Fixed Width w-32
-              className="w-32 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
+              className="w-28 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
             />
             <div className="flex items-center gap-1 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
-              <span>Approx. Page:</span>
-              <span className="font-bold text-sm text-gray-800 dark:text-white">{approx}</span>
+              <span className="w-20 text-right">Approx. Page:</span>
+              <span className="font-bold text-sm text-gray-800 dark:text-white w-8 text-left tabular-nums">{approx}</span>
             </div>
           </div>
 
           <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
 
           {/* Group 2 */}
-          <div className="flex items-center gap-3 flex-1 justify-center">
+          <div className="flex items-center gap-3 w-[240px] justify-start">
             <input 
               type="number" 
               placeholder="Current Sales Page"
               value={currentPage}
               onChange={(e) => setCurrentPage(e.target.value === '' ? '' : Number(e.target.value))}
-              // Fixed Width w-32
-              className="w-32 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
+              className="w-28 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
             />
             <div className="flex items-center gap-1 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
-               <span>Remain Page:</span>
-               <span className="font-bold text-sm text-gray-800 dark:text-white">{remain}</span>
+               <span className="w-20 text-right">Remain Page:</span>
+               <span className="font-bold text-sm text-gray-800 dark:text-white w-8 text-left tabular-nums">{remain}</span>
             </div>
           </div>
 
@@ -169,7 +181,7 @@ const SentLinksSection = ({ total, setTotal }: { total: number, setTotal: (n: nu
       <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 mb-3 backdrop-blur-md shadow-sm flex items-center justify-between w-full gap-3">
         
         {/* Input Group */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-[140px]">
           <input 
             type="number" 
             placeholder="Enter" 
@@ -185,18 +197,19 @@ const SentLinksSection = ({ total, setTotal }: { total: number, setTotal: (n: nu
 
         <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
 
-        {/* Total Display (Fixed Width) */}
-        <div className="flex items-center gap-2">
-           <span className="text-blue-600 dark:text-blue-400 font-bold text-sm whitespace-nowrap">Total Sent Links =</span>
-           <div className="bg-blue-100/50 dark:bg-blue-500/10 border border-blue-500/30 rounded-lg px-8 py-2 min-w-[100px] text-center">
-             <span className="text-lg font-bold text-blue-700 dark:text-blue-300">{total}</span>
+        {/* Total Display (Fixed Container to prevent Jitter) */}
+        <div className="flex items-center gap-2 flex-1 justify-center">
+           <span className="text-blue-600 dark:text-blue-400 font-bold text-sm whitespace-nowrap w-[120px] text-right">Total Sent Links =</span>
+           {/* Fixed Width Box for Number */}
+           <div className="bg-blue-100/50 dark:bg-blue-500/10 border border-blue-500/30 rounded-lg px-8 py-2 min-w-[100px] w-[100px] text-center flex justify-center">
+             <span className="text-lg font-bold text-blue-700 dark:text-blue-300 tabular-nums">{total}</span>
            </div>
         </div>
 
         <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-[160px] justify-end">
           <button onClick={() => setShowLogs(true)} className="flex items-center gap-1 bg-white dark:bg-white/5 border border-blue-500/30 hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-lg font-bold text-xs transition-all">
             <History size={14} /> Logs
           </button>
@@ -213,7 +226,7 @@ const SentLinksSection = ({ total, setTotal }: { total: number, setTotal: (n: nu
 };
 
 // --- EMAIL MANAGER ---
-const EmailManagerSection = () => {
+const EmailManagerSection = ({ triggerAlert }: { triggerAlert: (msg: string) => void }) => {
   const [emails, setEmails] = useState<EmailItem[]>([]);
   const [pageIndex, setPageIndex] = useState(0); 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -233,8 +246,8 @@ const EmailManagerSection = () => {
   }, [emails]);
 
   const ITEMS_PER_PAGE = 5;
-  const LIMIT = 20; // Changed to 20
-  const PAGES = ['A', 'B', 'C', 'D']; // Reduced pages since 20/5 = 4 pages
+  const LIMIT = 30; // UPDATED LIMIT
+  const PAGES = ['A', 'B', 'C', 'D', 'E', 'F']; // UPDATED PAGES
   
   const startIndex = pageIndex * ITEMS_PER_PAGE;
   const currentEmails = emails.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -257,7 +270,10 @@ const EmailManagerSection = () => {
       setBulkInput("");
       setIsAddModalOpen(false);
       setPageIndex(Math.floor((newEmails.length - 1) / ITEMS_PER_PAGE));
-    } else alert(`No valid/unique emails or limit (${LIMIT}) reached.`);
+    } else {
+        triggerAlert(`No valid/unique emails found or limit (${LIMIT}) reached.`);
+        setIsAddModalOpen(false);
+    }
   };
 
   const handleDeleteSelected = () => setEmails(prev => prev.filter(e => !e.selected));
@@ -276,7 +292,7 @@ const EmailManagerSection = () => {
        if (!emails.some(e => e.text === editValue && e.id !== editingId)) {
          setEmails(prev => prev.map(e => e.id === editingId ? { ...e, text: editValue } : e));
          setEditingId(null);
-       } else alert("Email exists.");
+       } else triggerAlert("Email already exists.");
     }
   };
   const isPageFullyCopied = currentEmails.length > 0 && currentEmails.every(e => e.copied);
@@ -290,6 +306,7 @@ const EmailManagerSection = () => {
             <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2 text-base">NewTask Emails <span className="text-blue-600 dark:text-blue-400">({PAGES[pageIndex]})</span></h3>
           </div>
           <div className="flex items-center gap-2">
+            
             {/* Reset Button (Left of Add) */}
             <AnimatePresence>
                 {isPageFullyCopied && (
@@ -315,14 +332,13 @@ const EmailManagerSection = () => {
           {currentEmails.length === 0 ? <div className="flex items-center justify-center h-full text-sm opacity-40 italic text-gray-500 dark:text-gray-400">Page {PAGES[pageIndex]} is empty</div> : 
             currentEmails.map(email => (
               <div key={email.id} className="group flex items-center gap-3 p-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 shadow-sm transition-all hover:shadow-md">
-                {/* Edit Button: Visible on Hover */}
+                
                 <button onClick={() => startEdit(email)} className="text-gray-400 hover:text-blue-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity"><Edit3 size={16} /></button>
                 
                 {editingId === email.id ? 
                   <div className="flex-1 flex gap-2"><input value={editValue} onChange={(e) => setEditValue(e.target.value)} className="flex-1 bg-gray-50 dark:bg-black border border-blue-500 rounded px-2 py-1 text-sm outline-none text-gray-900 dark:text-white" autoFocus /><button onClick={saveEdit} className="text-green-500"><Check size={16} /></button></div> 
                   : <span onClick={() => handleCopy(email.id, email.text)} className={`flex-1 text-sm cursor-pointer select-none text-center font-medium transition-all ${email.copied ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-700 dark:text-gray-300'}`}>{email.text}</span>}
                 
-                {/* Select Circle: Visible on Hover or if Selected */}
                 <button onClick={() => toggleSelect(email.id)} className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${email.selected ? 'bg-blue-500 border-blue-500 text-white opacity-100' : 'border-gray-300 dark:border-gray-500 hover:border-blue-400 text-transparent opacity-0 group-hover:opacity-100'}`}><Check size={12} /></button>
               </div>
             ))
@@ -344,7 +360,6 @@ const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
   
   const hours = ['08 AM', '09 AM', '10 AM', '11 AM', '12 PM', '01 PM', '02 PM', '03 PM', '04 PM', '05 PM', '06 PM', '07 PM', '08 PM'];
 
-  // Calculate totals from the grid
   const calculateTotals = () => {
     let sales = 0, search = 0;
     Object.entries(inputs).forEach(([key, val]) => {
@@ -357,7 +372,7 @@ const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
 
   const { sales, search, officeTotal } = calculateTotals();
   
-  // Milestone Calculation: Total Sent Links (Self) + Office Grid Total
+  // Dynamic Total Calculation
   const grandTotal = totalSentLinks + officeTotal;
   const needed = Math.max(0, target - grandTotal);
 
@@ -369,7 +384,6 @@ const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
     setIsSending(true);
     setIsSent(false);
     
-    // Message Format using Calculated Grand Total
     const content = `Sent Links: **${grandTotal.toLocaleString()}**\n\nNeed to send more **${needed.toLocaleString()}** links to reach **${target/1000}k** Milestone`;
     const webhookURL = "https://discord.com/api/webhooks/1466497164157911042/Cxc4IR1RJ0idOh-ctI5pyHYnODdHo4Hpk30qn3L7edcv960mzkg62BIaA-N0xmlIyDzV";
 
@@ -392,7 +406,7 @@ const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
     <div className="space-y-4 h-full overflow-y-auto pr-1 pb-4 custom-scrollbar">
       {/* Target Section */}
       <div className="bg-blue-100/50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/20 rounded-2xl p-4 flex items-center justify-between">
-         <div className="flex items-center gap-2">
+         <div className="flex items-center gap-2 min-w-[200px]">
             <span className="font-bold text-blue-700 dark:text-blue-300">Targeted Value</span>
             <select value={target} onChange={(e) => setTarget(Number(e.target.value))} className="bg-white dark:bg-black/20 border border-blue-300 rounded-full px-3 py-1 text-sm font-bold text-blue-600 focus:outline-none cursor-pointer">
                <option value={10000}>10k</option>
@@ -402,9 +416,9 @@ const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
          </div>
          <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 font-bold">
-               <LinkIcon size={16} /> Total Sent Links: 
-               {/* Padding Added to Number Box */}
-               <span className="bg-white dark:bg-black/20 px-8 py-1 rounded-lg border border-blue-300 min-w-[80px] text-center">{grandTotal.toLocaleString()}</span>
+               <LinkIcon size={16} /> <span className="whitespace-nowrap">Total Sent Links:</span> 
+               {/* Fixed Width + Padding */}
+               <span className="bg-white dark:bg-black/20 px-8 py-1 rounded-lg border border-blue-300 min-w-[100px] text-center tabular-nums inline-block">{grandTotal.toLocaleString()}</span>
             </div>
             
             {/* Discord Send Button */}
@@ -425,10 +439,10 @@ const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
          </div>
       </div>
 
-      {/* Milestone - Now Dynamic */}
+      {/* Milestone */}
       <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-6 text-center shadow-sm">
-         <h3 className="text-xl font-bold text-gray-700 dark:text-white mb-1">Sent Links: {grandTotal.toLocaleString()}</h3>
-         <p className="text-red-500 font-medium text-sm">Need to send more <span className="font-bold text-red-600">{needed.toLocaleString()}</span> links to reach {target/1000}k Milestone</p>
+         <h3 className="text-xl font-bold text-gray-700 dark:text-white mb-1 tabular-nums">Sent Links: {grandTotal.toLocaleString()}</h3>
+         <p className="text-red-500 font-medium text-sm tabular-nums">Need to send more <span className="font-bold text-red-600">{needed.toLocaleString()}</span> links to reach {target/1000}k Milestone</p>
       </div>
 
       {/* Grid Inputs */}
@@ -442,17 +456,17 @@ const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
          <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
             {hours.map((time, i) => (
                <div key={i} className="grid grid-cols-[1fr_80px_1fr] gap-4 items-center">
-                  <input type="number" value={inputs[`sales-${i}`] || ''} onChange={(e) => handleInput('sales', i, e.target.value)} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1 text-center outline-none focus:border-blue-400 no-spinner" />
+                  <input type="number" value={inputs[`sales-${i}`] || ''} onChange={(e) => handleInput('sales', i, e.target.value)} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1 text-center outline-none focus:border-blue-400 no-spinner tabular-nums" />
                   <div className="text-xs font-bold text-gray-500 text-center">{time}</div>
-                  <input type="number" value={inputs[`search-${i}`] || ''} onChange={(e) => handleInput('search', i, e.target.value)} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1 text-center outline-none focus:border-blue-400 no-spinner" />
+                  <input type="number" value={inputs[`search-${i}`] || ''} onChange={(e) => handleInput('search', i, e.target.value)} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1 text-center outline-none focus:border-blue-400 no-spinner tabular-nums" />
                </div>
             ))}
          </div>
 
          <div className="grid grid-cols-[1fr_80px_1fr] gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-white/10">
-            <div className="bg-blue-50 dark:bg-white/5 text-center py-1 rounded-lg font-bold text-blue-600 dark:text-blue-400">{sales}</div>
+            <div className="bg-blue-50 dark:bg-white/5 text-center py-1 rounded-lg font-bold text-blue-600 dark:text-blue-400 tabular-nums">{sales}</div>
             <div className="flex items-center justify-center gap-1 text-xs font-bold text-blue-500"><ArrowLeft size={10}/> Total <ArrowRight size={10}/></div>
-            <div className="bg-blue-50 dark:bg-white/5 text-center py-1 rounded-lg font-bold text-blue-600 dark:text-blue-400">{search}</div>
+            <div className="bg-blue-50 dark:bg-white/5 text-center py-1 rounded-lg font-bold text-blue-600 dark:text-blue-400 tabular-nums">{search}</div>
          </div>
       </div>
     </div>
@@ -468,6 +482,11 @@ interface NewTaskAppProps {
 
 export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks }: NewTaskAppProps) {
   const [activeTab, setActiveTab] = useState<'self' | 'office'>('self');
+  const [alertInfo, setAlertInfo] = useState<{isOpen: boolean, message: string}>({isOpen: false, message: ''});
+
+  const triggerAlert = (message: string) => {
+      setAlertInfo({ isOpen: true, message });
+  };
 
   return (
     <div className="h-full flex flex-col relative">
@@ -481,18 +500,25 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks 
         <CloseButton onClick={onClose} />
       </div>
 
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden relative">
         {activeTab === 'self' ? (
            <div className="h-full flex flex-col gap-3 max-w-[95%] mx-auto overflow-y-auto custom-scrollbar">
              <LinkedInSection />
              <SentLinksSection total={totalSentLinks} setTotal={setTotalSentLinks} />
              <div className="flex-1 min-h-[300px]">
-                <EmailManagerSection />
+                <EmailManagerSection triggerAlert={triggerAlert} />
              </div>
            </div>
         ) : (
           <OfficePage totalSentLinks={totalSentLinks} />
         )}
+        
+        {/* Custom Alert Modal */}
+        <AlertModal 
+            isOpen={alertInfo.isOpen} 
+            onClose={() => setAlertInfo({isOpen: false, message: ''})} 
+            message={alertInfo.message} 
+        />
       </div>
     </div>
   );
