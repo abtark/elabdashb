@@ -25,10 +25,11 @@ const CloseButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
+// --- GLOBAL MODALS (Fixed Position to cover whole screen) ---
 const Modal = ({ isOpen, onClose, title, children }: any) => {
   if (!isOpen) return null;
   return (
-    <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 rounded-3xl">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
       <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold text-gray-800 dark:text-white">{title}</h3>
@@ -43,7 +44,7 @@ const Modal = ({ isOpen, onClose, title, children }: any) => {
 const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => {
   if (!isOpen) return null;
   return (
-    <div className="absolute inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 rounded-3xl">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
       <motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center">
         <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Confirmation</h3>
         <p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p>
@@ -56,11 +57,10 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => {
   );
 };
 
-// New Alert Modal for replacing browser alert()
 const AlertModal = ({ isOpen, onClose, message }: any) => {
   if (!isOpen) return null;
   return (
-    <div className="absolute inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 rounded-3xl">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
       <motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center flex flex-col items-center gap-4">
         <AlertCircle size={48} className="text-orange-500" />
         <p className="text-gray-800 dark:text-white font-medium text-center">{message}</p>
@@ -71,10 +71,9 @@ const AlertModal = ({ isOpen, onClose, message }: any) => {
 };
 
 // --- LINKEDIN SALES SECTION ---
-const LinkedInSection = () => {
+const LinkedInSection = ({ triggerConfirm }: { triggerConfirm: (msg: string, action: () => void) => void }) => {
   const [totalSales, setTotalSales] = useState<number | ''>('');
   const [currentPage, setCurrentPage] = useState<number | ''>('');
-  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
   const calculate = () => {
     const total = Number(totalSales) || 0;
@@ -92,81 +91,71 @@ const LinkedInSection = () => {
   };
 
   return (
-    <>
-      <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 mb-3 backdrop-blur-md shadow-sm relative flex flex-col gap-3 w-full">
-        
-        {/* Title + Reset Button */}
-        <div className="w-full flex justify-center items-center relative">
-          <h3 className="font-bold text-blue-600 dark:text-blue-400 text-base text-center">
-            LinkedIn Sales Page Calculation
-          </h3>
-          {(totalSales !== '' || currentPage !== '') && (
-            <button 
-              onClick={() => setResetConfirmOpen(true)} 
-              className="absolute right-0 flex items-center gap-1 text-xs font-bold text-red-500 hover:bg-red-500/10 px-2 py-1 rounded-lg transition-colors"
-            >
-              <RotateCcw size={12} /> Reset
-            </button>
-          )}
+    <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 mb-3 backdrop-blur-md shadow-sm relative flex flex-col gap-3 w-full">
+      <div className="w-full flex justify-center items-center relative">
+        <h3 className="font-bold text-blue-600 dark:text-blue-400 text-base text-center">
+          LinkedIn Sales Page Calculation
+        </h3>
+        {(totalSales !== '' || currentPage !== '') && (
+          <button 
+            onClick={() => triggerConfirm("Reset all LinkedIn calculation data?", handleReset)} 
+            className="absolute right-0 flex items-center gap-1 text-xs font-bold text-red-500 hover:bg-red-500/10 px-2 py-1 rounded-lg transition-colors"
+          >
+            <RotateCcw size={12} /> Reset
+          </button>
+        )}
+      </div>
+
+      <div className="flex justify-center">
+          <div className="flex items-center gap-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-blue-500/10 dark:bg-blue-500/20 px-4 py-1.5 rounded-full border border-blue-500/20">
+          <Compass size={12} className="text-blue-500" />
+          <span>Default Leads on SalesNav Page ➜</span>
+          <span className="font-bold text-blue-700 dark:text-blue-300">25</span>
+          </div>
+      </div>
+
+      <div className="flex flex-nowrap items-center justify-center w-full mt-1 gap-6">
+        {/* INCREASED INPUT WIDTH to w-36 */}
+        <div className="flex items-center gap-3 w-[260px] justify-end">
+          <input 
+            type="number" 
+            placeholder="Total Sales Results"
+            value={totalSales}
+            onChange={(e) => setTotalSales(e.target.value === '' ? '' : Number(e.target.value))}
+            className="w-36 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
+          />
+          <div className="flex items-center gap-1 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
+            <span className="w-20 text-right">Approx. Page:</span>
+            <span className="font-bold text-sm text-gray-800 dark:text-white w-8 text-left tabular-nums">{approx}</span>
+          </div>
         </div>
 
-        {/* Default Leads */}
-        <div className="flex justify-center">
-            <div className="flex items-center gap-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-blue-500/10 dark:bg-blue-500/20 px-4 py-1.5 rounded-full border border-blue-500/20">
-            <Compass size={12} className="text-blue-500" />
-            <span>Default Leads on SalesNav Page ➜</span>
-            <span className="font-bold text-blue-700 dark:text-blue-300">25</span>
-            </div>
-        </div>
+        <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
 
-        {/* Inputs & Results Row - Fixed Widths to prevent Jitter */}
-        <div className="flex flex-nowrap items-center justify-center w-full mt-1 gap-6">
-          
-          {/* Group 1 */}
-          <div className="flex items-center gap-3 w-[240px] justify-end">
-            <input 
-              type="number" 
-              placeholder="Total Sales Results"
-              value={totalSales}
-              onChange={(e) => setTotalSales(e.target.value === '' ? '' : Number(e.target.value))}
-              className="w-28 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
-            />
-            <div className="flex items-center gap-1 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
-              <span className="w-20 text-right">Approx. Page:</span>
-              <span className="font-bold text-sm text-gray-800 dark:text-white w-8 text-left tabular-nums">{approx}</span>
-            </div>
+        {/* INCREASED INPUT WIDTH to w-36 */}
+        <div className="flex items-center gap-3 w-[260px] justify-start">
+          <input 
+            type="number" 
+            placeholder="Current Sales Page"
+            value={currentPage}
+            onChange={(e) => setCurrentPage(e.target.value === '' ? '' : Number(e.target.value))}
+            className="w-36 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
+          />
+          <div className="flex items-center gap-1 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
+             <span className="w-20 text-right">Remain Page:</span>
+             <span className="font-bold text-sm text-gray-800 dark:text-white w-8 text-left tabular-nums">{remain}</span>
           </div>
-
-          <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
-
-          {/* Group 2 */}
-          <div className="flex items-center gap-3 w-[240px] justify-start">
-            <input 
-              type="number" 
-              placeholder="Current Sales Page"
-              value={currentPage}
-              onChange={(e) => setCurrentPage(e.target.value === '' ? '' : Number(e.target.value))}
-              className="w-28 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
-            />
-            <div className="flex items-center gap-1 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
-               <span className="w-20 text-right">Remain Page:</span>
-               <span className="font-bold text-sm text-gray-800 dark:text-white w-8 text-left tabular-nums">{remain}</span>
-            </div>
-          </div>
-
         </div>
       </div>
-      <ConfirmModal isOpen={resetConfirmOpen} onClose={() => setResetConfirmOpen(false)} onConfirm={handleReset} message="Reset all LinkedIn calculation data?" />
-    </>
+    </div>
   );
 };
 
 // --- SENT LINKS SECTION ---
-const SentLinksSection = ({ total, setTotal }: { total: number, setTotal: (n: number) => void }) => {
+const SentLinksSection = ({ total, setTotal, triggerConfirm }: { total: number, setTotal: (n: number) => void, triggerConfirm: any }) => {
   const [val, setVal] = useState<number | ''>('');
   const [logs, setLogs] = useState<{id:number, txt:string}[]>([]);
   const [showLogs, setShowLogs] = useState(false);
-  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
   const handleAdd = () => {
     const v = Number(val);
@@ -179,8 +168,6 @@ const SentLinksSection = ({ total, setTotal }: { total: number, setTotal: (n: nu
   return (
     <>
       <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 mb-3 backdrop-blur-md shadow-sm flex items-center justify-between w-full gap-3">
-        
-        {/* Input Group */}
         <div className="flex items-center gap-2 w-[140px]">
           <input 
             type="number" 
@@ -197,10 +184,8 @@ const SentLinksSection = ({ total, setTotal }: { total: number, setTotal: (n: nu
 
         <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
 
-        {/* Total Display (Fixed Container to prevent Jitter) */}
         <div className="flex items-center gap-2 flex-1 justify-center">
            <span className="text-blue-600 dark:text-blue-400 font-bold text-sm whitespace-nowrap w-[120px] text-right">Total Sent Links =</span>
-           {/* Fixed Width Box for Number */}
            <div className="bg-blue-100/50 dark:bg-blue-500/10 border border-blue-500/30 rounded-lg px-8 py-2 min-w-[100px] w-[100px] text-center flex justify-center">
              <span className="text-lg font-bold text-blue-700 dark:text-blue-300 tabular-nums">{total}</span>
            </div>
@@ -208,17 +193,18 @@ const SentLinksSection = ({ total, setTotal }: { total: number, setTotal: (n: nu
 
         <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
 
-        {/* Actions */}
         <div className="flex items-center gap-2 w-[160px] justify-end">
           <button onClick={() => setShowLogs(true)} className="flex items-center gap-1 bg-white dark:bg-white/5 border border-blue-500/30 hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-lg font-bold text-xs transition-all">
             <History size={14} /> Logs
           </button>
-          <button onClick={() => setResetConfirmOpen(true)} className="flex items-center gap-1 bg-red-50 dark:bg-red-500/10 border border-red-500/30 hover:bg-red-100 dark:hover:bg-red-500/30 text-red-600 dark:text-red-400 px-4 py-2 rounded-lg font-bold text-xs transition-all">
+          <button 
+            onClick={() => triggerConfirm("Reset total sent links and logs?", () => { setTotal(0); setLogs([]); })} 
+            className="flex items-center gap-1 bg-red-50 dark:bg-red-500/10 border border-red-500/30 hover:bg-red-100 dark:hover:bg-red-500/30 text-red-600 dark:text-red-400 px-4 py-2 rounded-lg font-bold text-xs transition-all"
+          >
             <RotateCcw size={14} /> Reset!
           </button>
         </div>
 
-        <ConfirmModal isOpen={resetConfirmOpen} onClose={() => setResetConfirmOpen(false)} onConfirm={() => {setTotal(0); setLogs([])}} message="Reset total sent links and logs?" />
         <Modal isOpen={showLogs} onClose={() => setShowLogs(false)} title="Logs"><ul className="space-y-2 max-h-60 overflow-y-auto">{logs.map(l => <li key={l.id} className="text-sm border-b border-gray-100 dark:border-white/10 pb-1 text-gray-700 dark:text-gray-300">{l.txt}</li>)}</ul></Modal>
       </div>
     </>
@@ -226,14 +212,13 @@ const SentLinksSection = ({ total, setTotal }: { total: number, setTotal: (n: nu
 };
 
 // --- EMAIL MANAGER ---
-const EmailManagerSection = ({ triggerAlert }: { triggerAlert: (msg: string) => void }) => {
+const EmailManagerSection = ({ triggerAlert, triggerConfirm }: { triggerAlert: any, triggerConfirm: any }) => {
   const [emails, setEmails] = useState<EmailItem[]>([]);
   const [pageIndex, setPageIndex] = useState(0); 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [bulkInput, setBulkInput] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   
   // Persistence
   useEffect(() => {
@@ -246,8 +231,8 @@ const EmailManagerSection = ({ triggerAlert }: { triggerAlert: (msg: string) => 
   }, [emails]);
 
   const ITEMS_PER_PAGE = 5;
-  const LIMIT = 30; // UPDATED LIMIT
-  const PAGES = ['A', 'B', 'C', 'D', 'E', 'F']; // UPDATED PAGES
+  const LIMIT = 30;
+  const PAGES = ['A', 'B', 'C', 'D', 'E', 'F']; 
   
   const startIndex = pageIndex * ITEMS_PER_PAGE;
   const currentEmails = emails.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -307,15 +292,17 @@ const EmailManagerSection = ({ triggerAlert }: { triggerAlert: (msg: string) => 
           </div>
           <div className="flex items-center gap-2">
             
-            {/* Reset Button (Left of Add) */}
+            {/* Smoother Reset Button Animation */}
             <AnimatePresence>
                 {isPageFullyCopied && (
                     <motion.button 
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
+                        layout
+                        initial={{ opacity: 0, scale: 0.5, x: 20 }}
+                        animate={{ opacity: 1, scale: 1, x: 0 }}
+                        exit={{ opacity: 0, scale: 0.5, x: 20 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
                         onClick={resetPageCopies} 
-                        className="p-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-all"
+                        className="p-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
                         title="Reset Highlights"
                     >
                         <RotateCcw size={18} />
@@ -324,7 +311,7 @@ const EmailManagerSection = ({ triggerAlert }: { triggerAlert: (msg: string) => 
             </AnimatePresence>
 
             <button disabled={emails.length >= LIMIT} onClick={() => setIsAddModalOpen(true)} className="p-1.5 rounded-lg bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20"><Plus size={18} /></button>
-            <button disabled={!emails.some(e => e.selected)} onClick={() => setDeleteConfirmOpen(true)} className="p-1.5 rounded-lg bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"><Trash2 size={18} /></button>
+            <button disabled={!emails.some(e => e.selected)} onClick={() => triggerConfirm("Delete selected emails?", handleDeleteSelected)} className="p-1.5 rounded-lg bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"><Trash2 size={18} /></button>
             <button onClick={() => setPageIndex(p => Math.min(PAGES.length - 1, p + 1))} disabled={pageIndex === PAGES.length - 1} className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-20 text-gray-500 dark:text-gray-400 transition-colors"><ChevronRight size={18} /></button>
           </div>
         </div>
@@ -345,14 +332,13 @@ const EmailManagerSection = ({ triggerAlert }: { triggerAlert: (msg: string) => 
           }
         </div>
         <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Add Emails"><textarea value={bulkInput} onChange={(e) => setBulkInput(e.target.value)} placeholder="Enter emails" className="w-full h-40 bg-gray-50 dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-lg p-3 text-sm outline-none focus:border-blue-500 mb-4 font-mono resize-none text-gray-800 dark:text-white" /><button onClick={handleAddEmails} className="px-6 py-2 bg-blue-600 rounded-lg text-white text-sm hover:bg-blue-500 font-medium w-full">Add Emails</button></Modal>
-        <ConfirmModal isOpen={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)} onConfirm={handleDeleteSelected} message="Delete selected?" />
       </div>
     </>
   );
 };
 
 // --- OFFICE PAGE ---
-const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
+const OfficePage = ({ triggerConfirm }: { triggerConfirm: any }) => {
   const [target, setTarget] = useState(10000);
   const [inputs, setInputs] = useState<Record<string, string>>({});
   const [isSending, setIsSending] = useState(false);
@@ -372,9 +358,8 @@ const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
 
   const { sales, search, officeTotal } = calculateTotals();
   
-  // Dynamic Total Calculation
-  const grandTotal = totalSentLinks + officeTotal;
-  const needed = Math.max(0, target - grandTotal);
+  // INDEPENDENT TOTAL - NOT USING SELF PAGE DATA
+  const needed = Math.max(0, target - officeTotal);
 
   const handleInput = (type: 'sales' | 'search', index: number, val: string) => {
     setInputs(prev => ({ ...prev, [`${type}-${index}`]: val }));
@@ -384,7 +369,7 @@ const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
     setIsSending(true);
     setIsSent(false);
     
-    const content = `Sent Links: **${grandTotal.toLocaleString()}**\n\nNeed to send more **${needed.toLocaleString()}** links to reach **${target/1000}k** Milestone`;
+    const content = `Sent Links: **${officeTotal.toLocaleString()}**\n\nNeed to send more **${needed.toLocaleString()}** links to reach **${target/1000}k** Milestone`;
     const webhookURL = "https://discord.com/api/webhooks/1466497164157911042/Cxc4IR1RJ0idOh-ctI5pyHYnODdHo4Hpk30qn3L7edcv960mzkg62BIaA-N0xmlIyDzV";
 
     try {
@@ -417,23 +402,25 @@ const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
          <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 font-bold">
                <LinkIcon size={16} /> <span className="whitespace-nowrap">Total Sent Links:</span> 
-               {/* Fixed Width + Padding */}
-               <span className="bg-white dark:bg-black/20 px-8 py-1 rounded-lg border border-blue-300 min-w-[100px] text-center tabular-nums inline-block">{grandTotal.toLocaleString()}</span>
+               {/* Anti-Jitter: Fixed Min-Width + Tabular Nums */}
+               <span className="bg-white dark:bg-black/20 px-8 py-1 rounded-lg border border-blue-300 min-w-[100px] text-center tabular-nums inline-block">{officeTotal.toLocaleString()}</span>
             </div>
             
-            {/* Discord Send Button */}
-            <button 
-               onClick={sendToDiscord} 
-               disabled={isSending || isSent}
-               className={`flex items-center gap-1.5 text-xs text-white px-4 py-2 rounded-lg transition-all shadow-sm
-                  ${isSent ? 'bg-green-500 hover:bg-green-600' : 'bg-[#5865F2] hover:bg-[#4752C4]'}
-               `}
-            >
-               {isSending ? <Loader2 size={14} className="animate-spin" /> : isSent ? <Check size={14} /> : <FaDiscord size={14}/>}
-               {isSent ? 'Sent' : 'Send Updates'}
-            </button>
+            {/* Discord Send Button - Fixed Width to prevent Jitter */}
+            <div className="w-[140px] flex justify-end">
+                <button 
+                onClick={sendToDiscord} 
+                disabled={isSending || isSent}
+                className={`flex items-center justify-center gap-1.5 text-xs text-white px-4 py-2 rounded-lg transition-all shadow-sm w-full
+                    ${isSent ? 'bg-green-500 hover:bg-green-600' : 'bg-[#5865F2] hover:bg-[#4752C4]'}
+                `}
+                >
+                {isSending ? <Loader2 size={14} className="animate-spin" /> : isSent ? <Check size={14} /> : <FaDiscord size={14}/>}
+                {isSent ? 'Sent' : 'Send Updates'}
+                </button>
+            </div>
 
-            <button onClick={() => {if(confirm('Reset Office Data?')) setInputs({})}} className="flex items-center gap-1 text-xs text-red-500 border border-red-500/30 hover:bg-red-50 dark:hover:bg-red-500/10 px-3 py-2 rounded-lg transition-colors">
+            <button onClick={() => triggerConfirm("Reset Office Data?", () => setInputs({}))} className="flex items-center gap-1 text-xs text-red-500 border border-red-500/30 hover:bg-red-50 dark:hover:bg-red-500/10 px-3 py-2 rounded-lg transition-colors">
                <RotateCcw size={12}/> Reset
             </button>
          </div>
@@ -441,7 +428,7 @@ const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
 
       {/* Milestone */}
       <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-6 text-center shadow-sm">
-         <h3 className="text-xl font-bold text-gray-700 dark:text-white mb-1 tabular-nums">Sent Links: {grandTotal.toLocaleString()}</h3>
+         <h3 className="text-xl font-bold text-gray-700 dark:text-white mb-1 tabular-nums">Sent Links: {officeTotal.toLocaleString()}</h3>
          <p className="text-red-500 font-medium text-sm tabular-nums">Need to send more <span className="font-bold text-red-600">{needed.toLocaleString()}</span> links to reach {target/1000}k Milestone</p>
       </div>
 
@@ -482,10 +469,15 @@ interface NewTaskAppProps {
 
 export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks }: NewTaskAppProps) {
   const [activeTab, setActiveTab] = useState<'self' | 'office'>('self');
+  
+  // Top-Level Modal State
   const [alertInfo, setAlertInfo] = useState<{isOpen: boolean, message: string}>({isOpen: false, message: ''});
+  const [confirmInfo, setConfirmInfo] = useState<{isOpen: boolean, message: string, onConfirm: () => void}>({isOpen: false, message: '', onConfirm: () => {}});
 
-  const triggerAlert = (message: string) => {
-      setAlertInfo({ isOpen: true, message });
+  const triggerAlert = (message: string) => setAlertInfo({ isOpen: true, message });
+  
+  const triggerConfirm = (message: string, onConfirm: () => void) => {
+      setConfirmInfo({ isOpen: true, message, onConfirm });
   };
 
   return (
@@ -503,21 +495,27 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks 
       <div className="flex-1 overflow-hidden relative">
         {activeTab === 'self' ? (
            <div className="h-full flex flex-col gap-3 max-w-[95%] mx-auto overflow-y-auto custom-scrollbar">
-             <LinkedInSection />
-             <SentLinksSection total={totalSentLinks} setTotal={setTotalSentLinks} />
+             <LinkedInSection triggerConfirm={triggerConfirm} />
+             <SentLinksSection total={totalSentLinks} setTotal={setTotalSentLinks} triggerConfirm={triggerConfirm} />
              <div className="flex-1 min-h-[300px]">
-                <EmailManagerSection triggerAlert={triggerAlert} />
+                <EmailManagerSection triggerAlert={triggerAlert} triggerConfirm={triggerConfirm} />
              </div>
            </div>
         ) : (
-          <OfficePage totalSentLinks={totalSentLinks} />
+          <OfficePage triggerConfirm={triggerConfirm} />
         )}
         
-        {/* Custom Alert Modal */}
+        {/* Global Modals */}
         <AlertModal 
             isOpen={alertInfo.isOpen} 
             onClose={() => setAlertInfo({isOpen: false, message: ''})} 
             message={alertInfo.message} 
+        />
+        <ConfirmModal 
+            isOpen={confirmInfo.isOpen}
+            onClose={() => setConfirmInfo(prev => ({...prev, isOpen: false}))}
+            onConfirm={confirmInfo.onConfirm}
+            message={confirmInfo.message}
         />
       </div>
     </div>
