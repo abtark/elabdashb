@@ -123,8 +123,6 @@ export default function EntriesApp({ onClose, setGlobalTotal }: { onClose: () =>
 
   const handleAdd = (key: CategoryKey) => {
     const val = parseInt(inputs[key]);
-    
-    // Allow negative values (val !== 0)
     if (!isNaN(val) && val !== 0) {
       const now = new Date();
       setCounts(prev => ({ ...prev, [key]: prev[key] + val }));
@@ -136,7 +134,6 @@ export default function EntriesApp({ onClose, setGlobalTotal }: { onClose: () =>
         date: now.toLocaleDateString('en-GB')
       }]);
       setInputs(prev => ({ ...prev, [key]: '' }));
-      
       setAddedAnimation(key);
       setTimeout(() => setAddedAnimation(null), 300);
     }
@@ -149,7 +146,6 @@ export default function EntriesApp({ onClose, setGlobalTotal }: { onClose: () =>
 
   const deleteLog = (logId: number, catKey: CategoryKey, val: number) => {
     setLogs(prev => prev.filter(l => l.id !== logId));
-    // Reverse the operation when deleting log (subtract value)
     setCounts(prev => ({ ...prev, [catKey]: prev[catKey] - val }));
   };
 
@@ -177,29 +173,29 @@ export default function EntriesApp({ onClose, setGlobalTotal }: { onClose: () =>
       </div>
 
       {/* 2. Controls Bar */}
-      <div className="flex justify-between items-center bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-4 shadow-sm backdrop-blur-md shrink-0">
+      <div className="flex justify-between items-center bg-white/40 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl p-4 shadow-sm backdrop-blur-md shrink-0">
          {/* Left: Total */}
          <div className="flex items-center gap-3">
             <span className="font-bold text-gray-700 dark:text-gray-300 text-sm">Today's Total Entries:</span>
-            {/* Wider padding (px-10), same top/bottom padding as buttons (py-1.5) */}
-            <div className="bg-blue-100/50 dark:bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-blue-300 px-10 py-1.5 rounded-lg font-bold text-lg min-w-[80px] text-center">
+            {/* Height h-10 to match buttons */}
+            <div className="h-10 flex items-center justify-center bg-blue-100/50 dark:bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-blue-300 px-10 rounded-lg font-bold text-lg min-w-[80px]">
                 {getTotal()}
             </div>
          </div>
 
          {/* Right: Actions */}
          <div className="flex gap-3">
-            <button onClick={() => setShowLogs(true)} className="flex items-center gap-1 bg-white/20 dark:bg-white/5 border border-blue-500/30 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/20 px-5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
+            <button onClick={() => setShowLogs(true)} className="h-10 flex items-center gap-1 bg-white dark:bg-white/5 border border-blue-500/30 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/20 px-5 rounded-lg text-xs font-bold transition-all shadow-sm">
                 <History size={14}/> Logs
             </button>
-            <button onClick={() => setResetConfirmOpen(true)} className="flex items-center gap-1 bg-red-50/50 dark:bg-red-500/10 border border-red-500/30 text-red-600 hover:bg-red-100 dark:hover:bg-red-500/30 px-5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
+            <button onClick={() => setResetConfirmOpen(true)} className="h-10 flex items-center gap-1 bg-red-50/50 dark:bg-red-500/10 border border-red-500/30 text-red-600 hover:bg-red-100 dark:hover:bg-red-500/30 px-5 rounded-lg text-xs font-bold transition-all shadow-sm">
                 <RotateCcw size={14}/> Reset!
             </button>
          </div>
       </div>
 
-      {/* 3. Summary Section (Full Width, 2 Rows) */}
-      <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-3 shadow-sm backdrop-blur-md shrink-0">
+      {/* 3. Summary Section */}
+      <div className="bg-white/40 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl p-3 shadow-sm backdrop-blur-md shrink-0">
          <div className="grid grid-cols-3 gap-3 mb-3">
             {['cat1','cat2','cat3'].map(k => (
                <div key={k} className="flex flex-col items-center p-3 bg-blue-50/50 dark:bg-white/5 rounded-xl border border-blue-100 dark:border-white/5 shadow-sm">
@@ -218,13 +214,13 @@ export default function EntriesApp({ onClose, setGlobalTotal }: { onClose: () =>
          </div>
       </div>
 
-      {/* 4. Input Grid (Expanded Width, No Scroll) */}
-      <div className="flex-1 bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-5 shadow-sm backdrop-blur-md flex flex-col justify-center gap-4">
+      {/* 4. Input Grid */}
+      <div className="flex-1 bg-white/40 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl p-5 shadow-sm backdrop-blur-md flex flex-col justify-center gap-4">
          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
             {CATEGORIES.map((cat) => (
-               <div key={cat.key} className="group flex items-center gap-4 bg-white/30 dark:bg-white/5 p-1 rounded-xl border border-transparent hover:border-white/30 transition-all">
+               <div key={cat.key} className="group flex items-center gap-4 bg-white/60 dark:bg-white/5 p-1 rounded-xl border border-transparent hover:border-gray-300 dark:hover:border-white/30 transition-all">
                   
-                  {/* Edit Button (Hidden by default, visible on hover) */}
+                  {/* Edit Button */}
                   <button 
                     onClick={() => startEditLabel(cat.key)} 
                     className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
@@ -252,20 +248,21 @@ export default function EntriesApp({ onClose, setGlobalTotal }: { onClose: () =>
                         value={inputs[cat.key]}
                         onChange={(e) => setInputs(prev => ({ ...prev, [cat.key]: e.target.value }))}
                         onKeyDown={(e) => e.key === 'Enter' && handleAdd(cat.key)}
-                        className="w-full bg-white/70 dark:bg-black/20 border border-white/30 dark:border-white/10 rounded-lg py-3 px-4 text-center text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-400/50 transition-all placeholder:text-gray-400 no-spinner text-base font-medium"
+                        // Updated Border Logic: gray-200 for light mode visibility
+                        className="w-full bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg py-3 px-4 text-center text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400 transition-all placeholder:text-gray-400 no-spinner text-base font-medium"
                         placeholder={`Enter ${labels[cat.key]} Entry`}
                       />
                     )}
                   </div>
 
-                  {/* Add Button (Rectangular + Animation) */}
+                  {/* Add Button */}
                   <motion.button 
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleAdd(cat.key)}
                     className={`p-3 rounded-xl border transition-all duration-200 shadow-sm flex items-center justify-center min-w-[44px]
                       ${addedAnimation === cat.key 
                         ? 'bg-green-500 border-green-500 text-white' 
-                        : 'bg-white dark:bg-white/10 border-green-500/30 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-500/20 hover:border-green-500'
+                        : 'bg-white dark:bg-white/10 border-gray-200 dark:border-white/10 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-500/20 hover:border-green-500'
                       }
                     `}
                   >
