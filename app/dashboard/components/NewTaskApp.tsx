@@ -7,7 +7,7 @@ import {
   User, Building, Link as LinkIcon, ArrowRight, ArrowLeft, Search, Clock, Loader2
 } from "lucide-react";
 import { FaDiscord } from "react-icons/fa";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 // --- TYPES ---
 interface EmailItem {
@@ -81,7 +81,7 @@ const LinkedInSection = () => {
     <>
       <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 mb-3 backdrop-blur-md shadow-sm relative flex flex-col gap-3 w-full">
         
-        {/* Title + Reset Button Row */}
+        {/* Title + Reset Button */}
         <div className="w-full flex justify-center items-center relative">
           <h3 className="font-bold text-blue-600 dark:text-blue-400 text-base text-center">
             LinkedIn Sales Page Calculation
@@ -96,12 +96,11 @@ const LinkedInSection = () => {
           )}
         </div>
 
-        {/* Default Leads Pill */}
+        {/* Default Leads */}
         <div className="flex justify-center">
             <div className="flex items-center gap-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-blue-500/10 dark:bg-blue-500/20 px-4 py-1.5 rounded-full border border-blue-500/20">
             <Compass size={12} className="text-blue-500" />
-            <span>Default Leads on SalesNav Page</span>
-            <span className="text-blue-600 dark:text-blue-400">➜</span>
+            <span>Default Leads on SalesNav Page ➜</span>
             <span className="font-bold text-blue-700 dark:text-blue-300">25</span>
             </div>
         </div>
@@ -110,13 +109,14 @@ const LinkedInSection = () => {
         <div className="flex flex-nowrap items-center justify-between w-full mt-1 gap-4">
           
           {/* Group 1 */}
-          <div className="flex items-center gap-3 flex-1">
+          <div className="flex items-center gap-3 flex-1 justify-center">
             <input 
               type="number" 
               placeholder="Total Sales Results"
               value={totalSales}
               onChange={(e) => setTotalSales(e.target.value === '' ? '' : Number(e.target.value))}
-              className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-2 px-3 text-center text-sm outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
+              // Fixed Width w-32
+              className="w-32 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
             />
             <div className="flex items-center gap-1 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
               <span>Approx. Page:</span>
@@ -127,13 +127,14 @@ const LinkedInSection = () => {
           <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
 
           {/* Group 2 */}
-          <div className="flex items-center gap-3 flex-1">
+          <div className="flex items-center gap-3 flex-1 justify-center">
             <input 
               type="number" 
               placeholder="Current Sales Page"
               value={currentPage}
               onChange={(e) => setCurrentPage(e.target.value === '' ? '' : Number(e.target.value))}
-              className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-2 px-3 text-center text-sm outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
+              // Fixed Width w-32
+              className="w-32 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
             />
             <div className="flex items-center gap-1 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                <span>Remain Page:</span>
@@ -175,7 +176,7 @@ const SentLinksSection = ({ total, setTotal }: { total: number, setTotal: (n: nu
             value={val}
             onChange={(e) => setVal(e.target.value === '' ? '' : Number(e.target.value))}
             onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-            className="w-24 bg-white dark:bg-white/5 border border-blue-500/30 rounded-lg py-2 px-3 text-center font-bold text-gray-800 dark:text-white outline-none placeholder:font-normal placeholder:text-gray-400 no-spinner text-sm focus:border-blue-500 transition-colors"
+            className="w-20 bg-white dark:bg-white/5 border border-blue-500/30 rounded-lg py-2 px-3 text-center font-bold text-gray-800 dark:text-white outline-none placeholder:font-normal placeholder:text-gray-400 no-spinner text-sm focus:border-blue-500 transition-colors"
           />
           <button onClick={handleAdd} className="bg-blue-100 hover:bg-blue-200 dark:bg-blue-500/20 dark:hover:bg-blue-500/40 text-blue-600 dark:text-blue-300 border border-blue-500/30 p-2 rounded-lg transition-colors">
             <Check size={18} strokeWidth={3} />
@@ -184,17 +185,17 @@ const SentLinksSection = ({ total, setTotal }: { total: number, setTotal: (n: nu
 
         <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
 
-        {/* Total Display (Bigger Padding) */}
+        {/* Total Display (Fixed Width) */}
         <div className="flex items-center gap-2">
            <span className="text-blue-600 dark:text-blue-400 font-bold text-sm whitespace-nowrap">Total Sent Links =</span>
-           <div className="bg-blue-100/50 dark:bg-blue-500/10 border border-blue-500/30 rounded-lg px-8 py-2 min-w-[80px] text-center">
+           <div className="bg-blue-100/50 dark:bg-blue-500/10 border border-blue-500/30 rounded-lg px-8 py-2 min-w-[100px] text-center">
              <span className="text-lg font-bold text-blue-700 dark:text-blue-300">{total}</span>
            </div>
         </div>
 
         <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
 
-        {/* Actions (Same Padding) */}
+        {/* Actions */}
         <div className="flex items-center gap-2">
           <button onClick={() => setShowLogs(true)} className="flex items-center gap-1 bg-white dark:bg-white/5 border border-blue-500/30 hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-lg font-bold text-xs transition-all">
             <History size={14} /> Logs
@@ -211,7 +212,7 @@ const SentLinksSection = ({ total, setTotal }: { total: number, setTotal: (n: nu
   );
 };
 
-// --- EMAIL MANAGER (Restored) ---
+// --- EMAIL MANAGER ---
 const EmailManagerSection = () => {
   const [emails, setEmails] = useState<EmailItem[]>([]);
   const [pageIndex, setPageIndex] = useState(0); 
@@ -232,7 +233,9 @@ const EmailManagerSection = () => {
   }, [emails]);
 
   const ITEMS_PER_PAGE = 5;
-  const PAGES = ['A', 'B', 'C', 'D', 'E']; 
+  const LIMIT = 20; // Changed to 20
+  const PAGES = ['A', 'B', 'C', 'D']; // Reduced pages since 20/5 = 4 pages
+  
   const startIndex = pageIndex * ITEMS_PER_PAGE;
   const currentEmails = emails.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -242,7 +245,7 @@ const EmailManagerSection = () => {
     let addedCount = 0;
     const newEmails = [...emails];
     rawList.forEach(text => {
-      if (newEmails.length >= 25) return;
+      if (newEmails.length >= LIMIT) return;
       const cleanText = text.trim();
       if (isValidEmail(cleanText) && !newEmails.some(e => e.text === cleanText)) {
         newEmails.push({ id: Math.random().toString(36).substr(2, 9), text: cleanText, copied: false, selected: false });
@@ -254,7 +257,7 @@ const EmailManagerSection = () => {
       setBulkInput("");
       setIsAddModalOpen(false);
       setPageIndex(Math.floor((newEmails.length - 1) / ITEMS_PER_PAGE));
-    } else alert("No valid/unique emails or full.");
+    } else alert(`No valid/unique emails or limit (${LIMIT}) reached.`);
   };
 
   const handleDeleteSelected = () => setEmails(prev => prev.filter(e => !e.selected));
@@ -284,23 +287,43 @@ const EmailManagerSection = () => {
         <div className="flex justify-between items-center mb-4 select-none">
           <div className="flex items-center gap-3">
             <button onClick={() => setPageIndex(p => Math.max(0, p - 1))} disabled={pageIndex === 0} className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-20 text-gray-500 dark:text-gray-400 transition-colors"><ChevronLeft size={18} /></button>
-            <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2 text-base">NewTask Emails <span className="text-blue-600 dark:text-blue-400">({isPageFullyCopied ? <button onClick={resetPageCopies} className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:scale-110"><RotateCcw size={10}/></button> : PAGES[pageIndex]})</span></h3>
+            <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2 text-base">NewTask Emails <span className="text-blue-600 dark:text-blue-400">({PAGES[pageIndex]})</span></h3>
           </div>
           <div className="flex items-center gap-2">
-            <button disabled={emails.length >= 25} onClick={() => setIsAddModalOpen(true)} className="p-1.5 rounded-lg bg-blue-600 text-white disabled:opacity-50 hover:bg-blue-500 transition-all"><Plus size={18} /></button>
-            <button disabled={!emails.some(e => e.selected)} onClick={() => setDeleteConfirmOpen(true)} className="p-1.5 rounded-lg bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-200"><Trash2 size={18} /></button>
-            <button onClick={() => setPageIndex(p => Math.min(4, p + 1))} disabled={pageIndex === 4} className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-20 text-gray-500 dark:text-gray-400 transition-colors"><ChevronRight size={18} /></button>
+            {/* Reset Button (Left of Add) */}
+            <AnimatePresence>
+                {isPageFullyCopied && (
+                    <motion.button 
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        onClick={resetPageCopies} 
+                        className="p-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-all"
+                        title="Reset Highlights"
+                    >
+                        <RotateCcw size={18} />
+                    </motion.button>
+                )}
+            </AnimatePresence>
+
+            <button disabled={emails.length >= LIMIT} onClick={() => setIsAddModalOpen(true)} className="p-1.5 rounded-lg bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20"><Plus size={18} /></button>
+            <button disabled={!emails.some(e => e.selected)} onClick={() => setDeleteConfirmOpen(true)} className="p-1.5 rounded-lg bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"><Trash2 size={18} /></button>
+            <button onClick={() => setPageIndex(p => Math.min(PAGES.length - 1, p + 1))} disabled={pageIndex === PAGES.length - 1} className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-20 text-gray-500 dark:text-gray-400 transition-colors"><ChevronRight size={18} /></button>
           </div>
         </div>
         <div className="flex-1 flex flex-col justify-start gap-3 min-h-[220px]">
           {currentEmails.length === 0 ? <div className="flex items-center justify-center h-full text-sm opacity-40 italic text-gray-500 dark:text-gray-400">Page {PAGES[pageIndex]} is empty</div> : 
             currentEmails.map(email => (
-              <div key={email.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 shadow-sm transition-all hover:shadow-md">
-                <button onClick={() => startEdit(email)} className="text-gray-400 hover:text-blue-500 p-1"><Edit3 size={16} /></button>
+              <div key={email.id} className="group flex items-center gap-3 p-2.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 shadow-sm transition-all hover:shadow-md">
+                {/* Edit Button: Visible on Hover */}
+                <button onClick={() => startEdit(email)} className="text-gray-400 hover:text-blue-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity"><Edit3 size={16} /></button>
+                
                 {editingId === email.id ? 
                   <div className="flex-1 flex gap-2"><input value={editValue} onChange={(e) => setEditValue(e.target.value)} className="flex-1 bg-gray-50 dark:bg-black border border-blue-500 rounded px-2 py-1 text-sm outline-none text-gray-900 dark:text-white" autoFocus /><button onClick={saveEdit} className="text-green-500"><Check size={16} /></button></div> 
                   : <span onClick={() => handleCopy(email.id, email.text)} className={`flex-1 text-sm cursor-pointer select-none text-center font-medium transition-all ${email.copied ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-700 dark:text-gray-300'}`}>{email.text}</span>}
-                <button onClick={() => toggleSelect(email.id)} className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${email.selected ? 'bg-blue-500 border-blue-500 text-white' : 'border-gray-300 dark:border-gray-500 hover:border-blue-400 text-transparent'}`}><Check size={12} /></button>
+                
+                {/* Select Circle: Visible on Hover or if Selected */}
+                <button onClick={() => toggleSelect(email.id)} className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${email.selected ? 'bg-blue-500 border-blue-500 text-white opacity-100' : 'border-gray-300 dark:border-gray-500 hover:border-blue-400 text-transparent opacity-0 group-hover:opacity-100'}`}><Check size={12} /></button>
               </div>
             ))
           }
@@ -321,6 +344,7 @@ const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
   
   const hours = ['08 AM', '09 AM', '10 AM', '11 AM', '12 PM', '01 PM', '02 PM', '03 PM', '04 PM', '05 PM', '06 PM', '07 PM', '08 PM'];
 
+  // Calculate totals from the grid
   const calculateTotals = () => {
     let sales = 0, search = 0;
     Object.entries(inputs).forEach(([key, val]) => {
@@ -328,11 +352,14 @@ const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
       if (key.startsWith('sales')) sales += num;
       if (key.startsWith('search')) search += num;
     });
-    return { sales, search, total: sales + search };
+    return { sales, search, officeTotal: sales + search };
   };
 
-  const { sales, search, total } = calculateTotals();
-  const needed = Math.max(0, target - totalSentLinks); // Using Global Total Sent Links
+  const { sales, search, officeTotal } = calculateTotals();
+  
+  // Milestone Calculation: Total Sent Links (Self) + Office Grid Total
+  const grandTotal = totalSentLinks + officeTotal;
+  const needed = Math.max(0, target - grandTotal);
 
   const handleInput = (type: 'sales' | 'search', index: number, val: string) => {
     setInputs(prev => ({ ...prev, [`${type}-${index}`]: val }));
@@ -342,8 +369,8 @@ const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
     setIsSending(true);
     setIsSent(false);
     
-    // Message Format
-    const content = `Sent Links: **${totalSentLinks}**\n\nNeed to send more **${needed.toLocaleString()}** links to reach **${target/1000}k** Milestone`;
+    // Message Format using Calculated Grand Total
+    const content = `Sent Links: **${grandTotal.toLocaleString()}**\n\nNeed to send more **${needed.toLocaleString()}** links to reach **${target/1000}k** Milestone`;
     const webhookURL = "https://discord.com/api/webhooks/1466497164157911042/Cxc4IR1RJ0idOh-ctI5pyHYnODdHo4Hpk30qn3L7edcv960mzkg62BIaA-N0xmlIyDzV";
 
     try {
@@ -367,7 +394,7 @@ const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
       <div className="bg-blue-100/50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/20 rounded-2xl p-4 flex items-center justify-between">
          <div className="flex items-center gap-2">
             <span className="font-bold text-blue-700 dark:text-blue-300">Targeted Value</span>
-            <select value={target} onChange={(e) => setTarget(Number(e.target.value))} className="bg-white dark:bg-black/20 border border-blue-300 rounded-full px-3 py-1 text-sm font-bold text-blue-600 focus:outline-none">
+            <select value={target} onChange={(e) => setTarget(Number(e.target.value))} className="bg-white dark:bg-black/20 border border-blue-300 rounded-full px-3 py-1 text-sm font-bold text-blue-600 focus:outline-none cursor-pointer">
                <option value={10000}>10k</option>
                <option value={15000}>15k</option>
                <option value={20000}>20k</option>
@@ -375,14 +402,16 @@ const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
          </div>
          <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 font-bold">
-               <LinkIcon size={16} /> Total Sent Links: <span className="bg-white dark:bg-black/20 px-6 py-1 rounded-lg border border-blue-300">{totalSentLinks}</span>
+               <LinkIcon size={16} /> Total Sent Links: 
+               {/* Padding Added to Number Box */}
+               <span className="bg-white dark:bg-black/20 px-8 py-1 rounded-lg border border-blue-300 min-w-[80px] text-center">{grandTotal.toLocaleString()}</span>
             </div>
             
             {/* Discord Send Button */}
             <button 
                onClick={sendToDiscord} 
                disabled={isSending || isSent}
-               className={`flex items-center gap-1.5 text-xs text-white px-4 py-1.5 rounded-lg transition-all shadow-sm
+               className={`flex items-center gap-1.5 text-xs text-white px-4 py-2 rounded-lg transition-all shadow-sm
                   ${isSent ? 'bg-green-500 hover:bg-green-600' : 'bg-[#5865F2] hover:bg-[#4752C4]'}
                `}
             >
@@ -390,15 +419,15 @@ const OfficePage = ({ totalSentLinks }: { totalSentLinks: number }) => {
                {isSent ? 'Sent' : 'Send Updates'}
             </button>
 
-            <button onClick={() => {if(confirm('Reset Office Data?')) setInputs({})}} className="flex items-center gap-1 text-xs text-red-500 border border-red-500/30 hover:bg-red-50 dark:hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors">
+            <button onClick={() => {if(confirm('Reset Office Data?')) setInputs({})}} className="flex items-center gap-1 text-xs text-red-500 border border-red-500/30 hover:bg-red-50 dark:hover:bg-red-500/10 px-3 py-2 rounded-lg transition-colors">
                <RotateCcw size={12}/> Reset
             </button>
          </div>
       </div>
 
-      {/* Milestone */}
+      {/* Milestone - Now Dynamic */}
       <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-6 text-center shadow-sm">
-         <h3 className="text-xl font-bold text-gray-700 dark:text-white mb-1">Sent Links: {totalSentLinks}</h3>
+         <h3 className="text-xl font-bold text-gray-700 dark:text-white mb-1">Sent Links: {grandTotal.toLocaleString()}</h3>
          <p className="text-red-500 font-medium text-sm">Need to send more <span className="font-bold text-red-600">{needed.toLocaleString()}</span> links to reach {target/1000}k Milestone</p>
       </div>
 
