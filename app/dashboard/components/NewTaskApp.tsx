@@ -17,6 +17,12 @@ interface EmailItem {
   selected: boolean;
 }
 
+interface LogItem {
+  id: number;
+  txt: string;
+  value: number; // Storing value for deletion logic
+}
+
 // --- UTILS ---
 const CloseButton = ({ onClick }: { onClick: () => void }) => (
   <button onClick={onClick} className="absolute right-0 top-1/2 -translate-y-1/2 group flex items-center bg-transparent border border-white/20 dark:border-white/10 rounded-full p-1.5 hover:bg-red-500 hover:border-red-500 hover:pr-3 transition-all duration-300 text-gray-500 dark:text-gray-400 hover:text-white">
@@ -25,17 +31,19 @@ const CloseButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
-// --- GLOBAL MODALS (Fixed Position to cover whole screen) ---
+// --- GLOBAL MODALS ---
 const Modal = ({ isOpen, onClose, title, children }: any) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-      <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
-        <div className="flex justify-between items-center mb-4">
+      <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-md p-6 shadow-2xl relative flex flex-col max-h-[80vh]">
+        <div className="flex justify-between items-center mb-4 shrink-0">
           <h3 className="text-lg font-bold text-gray-800 dark:text-white">{title}</h3>
           <button onClick={onClose}><X size={20} className="text-gray-500 dark:text-gray-400 hover:opacity-100" /></button>
         </div>
-        {children}
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+            {children}
+        </div>
       </motion.div>
     </div>
   );
@@ -115,14 +123,15 @@ const LinkedInSection = ({ triggerConfirm }: { triggerConfirm: (msg: string, act
       </div>
 
       <div className="flex flex-nowrap items-center justify-center w-full mt-1 gap-6">
-        {/* INCREASED INPUT WIDTH to w-36 */}
-        <div className="flex items-center gap-3 w-[260px] justify-end">
+        
+        {/* WIDER INPUT: w-44 */}
+        <div className="flex items-center gap-3 w-[280px] justify-end">
           <input 
             type="number" 
             placeholder="Total Sales Results"
             value={totalSales}
             onChange={(e) => setTotalSales(e.target.value === '' ? '' : Number(e.target.value))}
-            className="w-36 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
+            className="w-44 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
           />
           <div className="flex items-center gap-1 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
             <span className="w-20 text-right">Approx. Page:</span>
@@ -132,14 +141,14 @@ const LinkedInSection = ({ triggerConfirm }: { triggerConfirm: (msg: string, act
 
         <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
 
-        {/* INCREASED INPUT WIDTH to w-36 */}
-        <div className="flex items-center gap-3 w-[260px] justify-start">
+        {/* WIDER INPUT: w-44 */}
+        <div className="flex items-center gap-3 w-[280px] justify-start">
           <input 
             type="number" 
             placeholder="Current Sales Page"
             value={currentPage}
             onChange={(e) => setCurrentPage(e.target.value === '' ? '' : Number(e.target.value))}
-            className="w-36 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
+            className="w-44 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
           />
           <div className="flex items-center gap-1 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
              <span className="w-20 text-right">Remain Page:</span>
@@ -152,62 +161,72 @@ const LinkedInSection = ({ triggerConfirm }: { triggerConfirm: (msg: string, act
 };
 
 // --- SENT LINKS SECTION ---
-const SentLinksSection = ({ total, setTotal, triggerConfirm }: { total: number, setTotal: (n: number) => void, triggerConfirm: any }) => {
+const SentLinksSection = ({ 
+    total, 
+    setTotal, 
+    triggerConfirm, 
+    logs, 
+    setLogs, 
+    onOpenLogs 
+}: { 
+    total: number, 
+    setTotal: (n: number) => void, 
+    triggerConfirm: any, 
+    logs: LogItem[],
+    setLogs: React.Dispatch<React.SetStateAction<LogItem[]>>,
+    onOpenLogs: () => void 
+}) => {
   const [val, setVal] = useState<number | ''>('');
-  const [logs, setLogs] = useState<{id:number, txt:string}[]>([]);
-  const [showLogs, setShowLogs] = useState(false);
 
   const handleAdd = () => {
     const v = Number(val);
     if (!v || v <= 0) return;
     setTotal(total + v);
-    setLogs(p => [{ id: Date.now(), txt: `Added ${v} at ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}` }, ...p]);
+    setLogs(p => [{ id: Date.now(), value: v, txt: `Added ${v} at ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}` }, ...p]);
     setVal('');
   };
 
   return (
-    <>
-      <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 mb-3 backdrop-blur-md shadow-sm flex items-center justify-between w-full gap-3">
-        <div className="flex items-center gap-2 w-[140px]">
-          <input 
-            type="number" 
-            placeholder="Enter" 
-            value={val}
-            onChange={(e) => setVal(e.target.value === '' ? '' : Number(e.target.value))}
-            onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-            className="w-20 bg-white dark:bg-white/5 border border-blue-500/30 rounded-lg py-2 px-3 text-center font-bold text-gray-800 dark:text-white outline-none placeholder:font-normal placeholder:text-gray-400 no-spinner text-sm focus:border-blue-500 transition-colors"
-          />
-          <button onClick={handleAdd} className="bg-blue-100 hover:bg-blue-200 dark:bg-blue-500/20 dark:hover:bg-blue-500/40 text-blue-600 dark:text-blue-300 border border-blue-500/30 p-2 rounded-lg transition-colors">
-            <Check size={18} strokeWidth={3} />
-          </button>
-        </div>
-
-        <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
-
-        <div className="flex items-center gap-2 flex-1 justify-center">
-           <span className="text-blue-600 dark:text-blue-400 font-bold text-sm whitespace-nowrap w-[120px] text-right">Total Sent Links =</span>
-           <div className="bg-blue-100/50 dark:bg-blue-500/10 border border-blue-500/30 rounded-lg px-8 py-2 min-w-[100px] w-[100px] text-center flex justify-center">
-             <span className="text-lg font-bold text-blue-700 dark:text-blue-300 tabular-nums">{total}</span>
-           </div>
-        </div>
-
-        <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
-
-        <div className="flex items-center gap-2 w-[160px] justify-end">
-          <button onClick={() => setShowLogs(true)} className="flex items-center gap-1 bg-white dark:bg-white/5 border border-blue-500/30 hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-lg font-bold text-xs transition-all">
-            <History size={14} /> Logs
-          </button>
-          <button 
-            onClick={() => triggerConfirm("Reset total sent links and logs?", () => { setTotal(0); setLogs([]); })} 
-            className="flex items-center gap-1 bg-red-50 dark:bg-red-500/10 border border-red-500/30 hover:bg-red-100 dark:hover:bg-red-500/30 text-red-600 dark:text-red-400 px-4 py-2 rounded-lg font-bold text-xs transition-all"
-          >
-            <RotateCcw size={14} /> Reset!
-          </button>
-        </div>
-
-        <Modal isOpen={showLogs} onClose={() => setShowLogs(false)} title="Logs"><ul className="space-y-2 max-h-60 overflow-y-auto">{logs.map(l => <li key={l.id} className="text-sm border-b border-gray-100 dark:border-white/10 pb-1 text-gray-700 dark:text-gray-300">{l.txt}</li>)}</ul></Modal>
+    <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 mb-3 backdrop-blur-md shadow-sm flex items-center justify-between w-full gap-3">
+      {/* WIDER INPUT: w-32 */}
+      <div className="flex items-center gap-2 w-[180px]">
+        <input 
+          type="number" 
+          placeholder="Enter" 
+          value={val}
+          onChange={(e) => setVal(e.target.value === '' ? '' : Number(e.target.value))}
+          onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+          className="w-32 bg-white dark:bg-white/5 border border-blue-500/30 rounded-lg py-2 px-3 text-center font-bold text-gray-800 dark:text-white outline-none placeholder:font-normal placeholder:text-gray-400 no-spinner text-sm focus:border-blue-500 transition-colors"
+        />
+        <button onClick={handleAdd} className="bg-blue-100 hover:bg-blue-200 dark:bg-blue-500/20 dark:hover:bg-blue-500/40 text-blue-600 dark:text-blue-300 border border-blue-500/30 p-2 rounded-lg transition-colors">
+          <Check size={18} strokeWidth={3} />
+        </button>
       </div>
-    </>
+
+      <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
+
+      <div className="flex items-center gap-2 flex-1 justify-center">
+          <span className="text-blue-600 dark:text-blue-400 font-bold text-sm whitespace-nowrap w-[120px] text-right">Total Sent Links =</span>
+          {/* REDUCED PADDING: py-1 */}
+          <div className="bg-blue-100/50 dark:bg-blue-500/10 border border-blue-500/30 rounded-lg px-8 py-1 min-w-[100px] w-[100px] text-center flex justify-center items-center h-[34px]">
+            <span className="text-lg font-bold text-blue-700 dark:text-blue-300 tabular-nums leading-none">{total}</span>
+          </div>
+      </div>
+
+      <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
+
+      <div className="flex items-center gap-2 w-[160px] justify-end">
+        <button onClick={onOpenLogs} className="flex items-center gap-1 bg-white dark:bg-white/5 border border-blue-500/30 hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-lg font-bold text-xs transition-all">
+          <History size={14} /> Logs
+        </button>
+        <button 
+          onClick={() => triggerConfirm("Reset total sent links and logs?", () => { setTotal(0); setLogs([]); })} 
+          className="flex items-center gap-1 bg-red-50 dark:bg-red-500/10 border border-red-500/30 hover:bg-red-100 dark:hover:bg-red-500/30 text-red-600 dark:text-red-400 px-4 py-2 rounded-lg font-bold text-xs transition-all"
+        >
+          <RotateCcw size={14} /> Reset!
+        </button>
+      </div>
+    </div>
   );
 };
 
@@ -292,7 +311,6 @@ const EmailManagerSection = ({ triggerAlert, triggerConfirm }: { triggerAlert: a
           </div>
           <div className="flex items-center gap-2">
             
-            {/* Smoother Reset Button Animation */}
             <AnimatePresence>
                 {isPageFullyCopied && (
                     <motion.button 
@@ -358,7 +376,7 @@ const OfficePage = ({ triggerConfirm }: { triggerConfirm: any }) => {
 
   const { sales, search, officeTotal } = calculateTotals();
   
-  // INDEPENDENT TOTAL - NOT USING SELF PAGE DATA
+  // Independent Total (Self Page Links NOT included)
   const needed = Math.max(0, target - officeTotal);
 
   const handleInput = (type: 'sales' | 'search', index: number, val: string) => {
@@ -402,11 +420,11 @@ const OfficePage = ({ triggerConfirm }: { triggerConfirm: any }) => {
          <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 font-bold">
                <LinkIcon size={16} /> <span className="whitespace-nowrap">Total Sent Links:</span> 
-               {/* Anti-Jitter: Fixed Min-Width + Tabular Nums */}
-               <span className="bg-white dark:bg-black/20 px-8 py-1 rounded-lg border border-blue-300 min-w-[100px] text-center tabular-nums inline-block">{officeTotal.toLocaleString()}</span>
+               {/* Anti-Jitter: min-w-[140px] + tabular-nums */}
+               <span className="bg-white dark:bg-black/20 px-8 py-1 rounded-lg border border-blue-300 min-w-[140px] text-center tabular-nums inline-block">{officeTotal.toLocaleString()}</span>
             </div>
             
-            {/* Discord Send Button - Fixed Width to prevent Jitter */}
+            {/* Discord Send Button */}
             <div className="w-[140px] flex justify-end">
                 <button 
                 onClick={sendToDiscord} 
@@ -470,14 +488,39 @@ interface NewTaskAppProps {
 export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks }: NewTaskAppProps) {
   const [activeTab, setActiveTab] = useState<'self' | 'office'>('self');
   
-  // Top-Level Modal State
+  // Top-Level Modal States
   const [alertInfo, setAlertInfo] = useState<{isOpen: boolean, message: string}>({isOpen: false, message: ''});
   const [confirmInfo, setConfirmInfo] = useState<{isOpen: boolean, message: string, onConfirm: () => void}>({isOpen: false, message: '', onConfirm: () => {}});
+  const [logModalInfo, setLogModalInfo] = useState<{isOpen: boolean, title: string, logs: LogItem[]}>({isOpen: false, title: '', logs: []});
 
+  // Local state for Sent Links Logs to manage data, but display is handled globally
+  const [sentLinksLogs, setSentLinksLogs] = useState<LogItem[]>([]);
+
+  // Handlers to trigger global modals
   const triggerAlert = (message: string) => setAlertInfo({ isOpen: true, message });
+  const triggerConfirm = (message: string, onConfirm: () => void) => setConfirmInfo({ isOpen: true, message, onConfirm });
   
-  const triggerConfirm = (message: string, onConfirm: () => void) => {
-      setConfirmInfo({ isOpen: true, message, onConfirm });
+  // Function passed to SentLinksSection to open global log modal
+  const openLogs = () => {
+      setLogModalInfo({
+          isOpen: true,
+          title: "Sent Links Logs",
+          logs: sentLinksLogs
+      });
+  };
+
+  // Helper to delete log from global modal (needs to update local state too)
+  const deleteLog = (id: number) => {
+      const log = sentLinksLogs.find(l => l.id === id);
+      if (log) {
+          setTotalSentLinks(totalSentLinks - log.value);
+          setSentLinksLogs(prev => prev.filter(l => l.id !== id));
+          // Update the open modal content live
+          setLogModalInfo(prev => ({
+              ...prev,
+              logs: prev.logs.filter(l => l.id !== id)
+          }));
+      }
   };
 
   return (
@@ -486,7 +529,7 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks 
         <button onClick={() => setActiveTab('self')} className={`flex items-center gap-2 px-6 py-2 rounded-full transition-all text-sm font-medium border ${activeTab === 'self' ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-white/20 dark:bg-white/5 border-transparent hover:bg-white/40 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400'}`}>
           <User size={16} /> Self
         </button>
-        <button onClick={() => setActiveTab('office')} className={`flex items-center gap-2 px-6 py-2 rounded-full transition-all text-sm font-medium border ${activeTab === 'office' ? 'bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-500/20' : 'bg-white/20 dark:bg-white/5 border-transparent hover:bg-white/40 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400'}`}>
+        <button onClick={() => setActiveTab('office')} className={`flex items-center gap-2 px-6 py-2 rounded-full transition-all text-sm font-medium border ${activeTab === 'office' ? 'bg-[#5865F2] border-[#5865F2] text-white shadow-lg shadow-[#5865F2]/20' : 'bg-white/20 dark:bg-white/5 border-transparent hover:bg-white/40 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400'}`}>
           <Building size={16} /> Office
         </button>
         <CloseButton onClick={onClose} />
@@ -496,7 +539,14 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks 
         {activeTab === 'self' ? (
            <div className="h-full flex flex-col gap-3 max-w-[95%] mx-auto overflow-y-auto custom-scrollbar">
              <LinkedInSection triggerConfirm={triggerConfirm} />
-             <SentLinksSection total={totalSentLinks} setTotal={setTotalSentLinks} triggerConfirm={triggerConfirm} />
+             <SentLinksSection 
+                total={totalSentLinks} 
+                setTotal={setTotalSentLinks} 
+                triggerConfirm={triggerConfirm}
+                logs={sentLinksLogs}
+                setLogs={setSentLinksLogs}
+                onOpenLogs={openLogs}
+             />
              <div className="flex-1 min-h-[300px]">
                 <EmailManagerSection triggerAlert={triggerAlert} triggerConfirm={triggerConfirm} />
              </div>
@@ -517,6 +567,24 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks 
             onConfirm={confirmInfo.onConfirm}
             message={confirmInfo.message}
         />
+        
+        {/* Global Logs Modal */}
+        <Modal 
+            isOpen={logModalInfo.isOpen} 
+            onClose={() => setLogModalInfo({isOpen: false, title: '', logs: []})} 
+            title={logModalInfo.title}
+        >
+            <ul className="space-y-2">
+                {logModalInfo.logs.length === 0 ? <li className="text-center text-gray-500 opacity-60">No logs yet.</li> : 
+                    [...logModalInfo.logs].reverse().map(log => (
+                        <li key={log.id} className="text-sm border-b border-gray-100 dark:border-white/10 pb-2 flex justify-between items-center text-gray-700 dark:text-gray-300">
+                            <span>{log.txt}</span>
+                            <button onClick={() => deleteLog(log.id)} className="text-red-500 hover:bg-red-50 dark:hover:bg-white/10 p-1 rounded-full"><X size={14}/></button>
+                        </li>
+                    ))
+                }
+            </ul>
+        </Modal>
       </div>
     </div>
   );
