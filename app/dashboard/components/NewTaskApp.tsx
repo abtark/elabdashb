@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { 
   X, Check, RotateCcw, History, Compass, 
-  Plus, Trash2, ChevronLeft, ChevronRight, CheckSquare, Edit3,
+  Plus, Trash2, ChevronLeft, ChevronRight, Edit3,
   User, Building, Link as LinkIcon, ArrowRight, ArrowLeft, Search, Clock, Loader2, AlertCircle
 } from "lucide-react";
 import { FaDiscord } from "react-icons/fa";
@@ -115,7 +115,7 @@ const LinkedInSection = ({ triggerConfirm }: { triggerConfirm: (msg: string, act
         {(totalSales !== '' || currentPage !== '') && (
           <button 
             onClick={() => triggerConfirm("Reset all LinkedIn calculation data?", handleReset)} 
-            className="absolute right-0 flex items-center gap-1 text-xs font-bold text-red-500 hover:bg-red-500/10 px-2 py-1 rounded-lg transition-colors"
+            className="absolute right-0 flex items-center gap-1 text-xs font-bold text-red-500 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 px-2 py-1 rounded-lg transition-colors border border-red-200 dark:border-transparent"
           >
             <RotateCcw size={12} /> Reset
           </button>
@@ -373,10 +373,6 @@ const OfficePage = ({ triggerConfirm, resetSignal }: { triggerConfirm: any, rese
       localStorage.setItem('nt_office_inputs', JSON.stringify(inputs));
   }, [target, inputs]);
 
-  useEffect(() => {
-      if (resetSignal > 0) setInputs({});
-  }, [resetSignal]);
-
   const calculateTotals = () => {
     let sales = 0, search = 0;
     Object.entries(inputs).forEach(([key, val]) => {
@@ -500,6 +496,17 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks,
   const [logModalInfo, setLogModalInfo] = useState<{isOpen: boolean, title: string, logs: LogItem[]}>({isOpen: false, title: '', logs: []});
 
   const [sentLinksLogs, setSentLinksLogs] = useState<LogItem[]>([]);
+
+  useEffect(() => {
+    const savedLogs = localStorage.getItem('nt_self_sent_links_logs');
+    if (savedLogs) {
+        setSentLinksLogs(JSON.parse(savedLogs));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('nt_self_sent_links_logs', JSON.stringify(sentLinksLogs));
+  }, [sentLinksLogs]);
 
   useEffect(() => {
       if (resetSignal > 0) {
