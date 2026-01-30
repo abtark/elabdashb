@@ -4,11 +4,9 @@ import { User, Coffee, X, Edit2, Check, Send, Loader2 } from "lucide-react";
 import { FaDiscord } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-// ... Interfaces (Person, SnackRow) ...
 interface Person { id: number; name: string; checked: boolean; editing: boolean; }
 interface SnackRow { day: string; morning: string; evening: string; editingMorning: boolean; editingEvening: boolean; }
 
-// Updated CloseButton
 const CloseButton = ({ onClick }: { onClick: () => void }) => (
   <button onClick={onClick} className="absolute right-0 top-1/2 -translate-y-1/2 group flex items-center bg-transparent border border-gray-300 dark:border-white/20 rounded-full p-1.5 hover:bg-red-500 hover:border-red-500 hover:pr-3 transition-all duration-300 text-gray-500 dark:text-white hover:text-white">
     <X size={16} />
@@ -21,51 +19,41 @@ const DAYS = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'
 export default function SnacksApp({ onClose }: { onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<'person' | 'snacks'>('person');
   const [isClient, setIsClient] = useState(false);
-  
-  // State
   const [persons, setPersons] = useState<Person[]>([]);
   const [snackRows, setSnackRows] = useState<SnackRow[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<{ dayIndex: number, type: 'morning' | 'evening' } | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [isSent, setIsSent] = useState(false);
 
-  // Persistence
   useEffect(() => {
     setIsClient(true);
     const savedTab = localStorage.getItem('snacks_active_tab');
     if (savedTab) setActiveTab(savedTab as 'person' | 'snacks');
 
-    // ... (Existing Persons/Snacks loading logic) ...
     const savedPersons = localStorage.getItem('snacks_persons');
     if (savedPersons) {
       let parsed = JSON.parse(savedPersons);
-      if (parsed.length < 20) {
-         const diff = 20 - parsed.length; const newOnes = Array.from({length: diff}, (_, i) => ({ id: parsed.length + i + 1, name: `Person ${parsed.length + i + 1}`, checked: false, editing: false }));
-         parsed = [...parsed, ...newOnes];
-      }
+      if (parsed.length < 20) { const diff = 20 - parsed.length; const newOnes = Array.from({length: diff}, (_, i) => ({ id: parsed.length + i + 1, name: `Person ${parsed.length + i + 1}`, checked: false, editing: false })); parsed = [...parsed, ...newOnes]; }
       setPersons(parsed);
     } else { setPersons(Array.from({length:20}, (_, i) => ({ id: i+1, name: `Person ${i+1}`, checked: false, editing: false }))); }
 
     const savedSnacks = localStorage.getItem('weekly_snacks_fixed');
-    if (savedSnacks) { const parsed = JSON.parse(savedSnacks).map((r: any) => ({ ...r, editingMorning: false, editingEvening: false })); setSnackRows(parsed);
-    } else { const defaults = DAYS.map(day => ({ day, morning: 'Morning Snacks', evening: 'Evening Snacks', editingMorning: false, editingEvening: false })); setSnackRows(defaults); }
+    if (savedSnacks) { const parsed = JSON.parse(savedSnacks).map((r: any) => ({ ...r, editingMorning: false, editingEvening: false })); setSnackRows(parsed); } 
+    else { const defaults = DAYS.map(day => ({ day, morning: 'Morning Snacks', evening: 'Evening Snacks', editingMorning: false, editingEvening: false })); setSnackRows(defaults); }
   }, []);
 
   useEffect(() => { localStorage.setItem('snacks_active_tab', activeTab); }, [activeTab]);
   useEffect(() => { if (isClient && persons.length > 0) localStorage.setItem('snacks_persons', JSON.stringify(persons)); }, [persons, isClient]);
   useEffect(() => { if (isClient && snackRows.length > 0) { const toSave = snackRows.map(({ day, morning, evening }) => ({ day, morning, evening })); localStorage.setItem('weekly_snacks_fixed', JSON.stringify(toSave)); } }, [snackRows, isClient]);
 
-  // Handlers
-  const toggleEditPerson = (id: number) => { setPersons(p => p.map(person => person.id === id ? { ...person, editing: !person.editing } : person)); };
-  const updatePersonName = (id: number, val: string) => { setPersons(p => p.map(person => person.id === id ? { ...person, name: val } : person)); };
-  const togglePersonCheck = (id: number) => { setPersons(prev => prev.map(per => per.id === id ? { ...per, checked: !per.checked } : per)); }
-  const toggleSnackEdit = (index: number, field: 'morning' | 'evening') => { setSnackRows(prev => prev.map((row, i) => { if (i === index) { return field === 'morning' ? { ...row, editingMorning: !row.editingMorning } : { ...row, editingEvening: !row.editingEvening }; } return row; })); };
-  const updateSnackText = (index: number, field: 'morning' | 'evening', val: string) => { setSnackRows(prev => prev.map((row, i) => i === index ? { ...row, [field]: val } : row)); };
-  const handleSlotClick = (index: number, type: 'morning' | 'evening') => { const row = snackRows[index]; if ((type === 'morning' && row.editingMorning) || (type === 'evening' && row.editingEvening)) return; if (selectedSlot?.dayIndex === index && selectedSlot?.type === type) { setSelectedSlot(null); } else { setSelectedSlot({ dayIndex: index, type }); } };
-  
+  const toggleEditPerson = (id: number) => setPersons(p => p.map(person => person.id === id ? { ...person, editing: !person.editing } : person));
+  const updatePersonName = (id: number, val: string) => setPersons(p => p.map(person => person.id === id ? { ...person, name: val } : person));
+  const togglePersonCheck = (id: number) => setPersons(prev => prev.map(per => per.id === id ? { ...per, checked: !per.checked } : per));
+  const toggleSnackEdit = (index: number, field: 'morning' | 'evening') => setSnackRows(prev => prev.map((row, i) => { if (i === index) return field === 'morning' ? { ...row, editingMorning: !row.editingMorning } : { ...row, editingEvening: !row.editingEvening }; return row; }));
+  const updateSnackText = (index: number, field: 'morning' | 'evening', val: string) => setSnackRows(prev => prev.map((row, i) => i === index ? { ...row, [field]: val } : row));
+  const handleSlotClick = (index: number, type: 'morning' | 'evening') => { const row = snackRows[index]; if ((type === 'morning' && row.editingMorning) || (type === 'evening' && row.editingEvening)) return; if (selectedSlot?.dayIndex === index && selectedSlot?.type === type) setSelectedSlot(null); else setSelectedSlot({ dayIndex: index, type }); };
   const sendToDiscord = async () => { if (!selectedSlot) return; setIsSending(true); setIsSent(false); const row = snackRows[selectedSlot.dayIndex]; const snackName = selectedSlot.type === 'morning' ? row.morning : row.evening; const timeLabel = selectedSlot.type === 'morning' ? 'Morning Snacks' : 'Evening Snacks'; const content = `**${timeLabel}: ${snackName}**`; const webhookURL = "https://discord.com/api/webhooks/1414810052816011326/-dKyfHXA8f3y9LutcepbkvQIwiAkyAb_pWClYFvaiapfbmdP__KXzlYe1yd441i59qPQ"; try { await fetch(webhookURL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content }) }); setIsSending(false); setIsSent(true); setTimeout(() => { setIsSent(false); setSelectedSlot(null); }, 2000); } catch (e) { alert("Failed to send."); setIsSending(false); console.error(e); } };
 
-  // Stats
   const totalPersons = persons.length; const noSnackCount = persons.filter(p => p.checked).length; const takingCount = totalPersons - noSnackCount; const currentJsDay = new Date().getDay(); const todayRowIndex = (currentJsDay + 1) % 7; 
 
   if (!isClient) return null;
@@ -73,9 +61,9 @@ export default function SnacksApp({ onClose }: { onClose: () => void }) {
   return (
     <div className="h-full flex flex-col relative gap-3 font-ubuntu">
       <div className="flex justify-center items-center gap-4 shrink-0 relative min-h-[40px]">
-        <button onClick={() => setActiveTab('person')} className={`flex items-center gap-2 px-6 py-2 rounded-full text-sm font-medium border transition-all ${activeTab === 'person' ? 'bg-pink-500 border-pink-500 text-white shadow-md' : 'bg-white/20 border-transparent text-gray-600 dark:text-gray-400 hover:bg-white/30'}`}><User size={16} /> Person</button>
-        {/* Updated Snack Tab Color: #FF5F5F */}
-        <button onClick={() => setActiveTab('snacks')} className={`flex items-center gap-2 px-6 py-2 rounded-full text-sm font-medium border transition-all ${activeTab === 'snacks' ? 'bg-[#FF5F5F] border-[#FF5F5F] text-white shadow-md' : 'bg-white/20 border-transparent text-gray-600 dark:text-gray-400 hover:bg-white/30'}`}><Coffee size={16} /> Snacks</button>
+        {/* Updated Coffee Color: #6F4E37 */}
+        <button onClick={() => setActiveTab('person')} className={`flex items-center gap-2 px-6 py-2 rounded-full text-sm font-medium border transition-all ${activeTab === 'person' ? 'bg-[#6F4E37] border-[#6F4E37] text-white shadow-md' : 'bg-white/20 border-transparent text-gray-600 dark:text-gray-400 hover:bg-white/30'}`}><User size={16} /> Person</button>
+        <button onClick={() => setActiveTab('snacks')} className={`flex items-center gap-2 px-6 py-2 rounded-full text-sm font-medium border transition-all ${activeTab === 'snacks' ? 'bg-[#6F4E37] border-[#6F4E37] text-white shadow-md' : 'bg-white/20 border-transparent text-gray-600 dark:text-gray-400 hover:bg-white/30'}`}><Coffee size={16} /> Snacks</button>
         <CloseButton onClick={onClose} />
       </div>
 
