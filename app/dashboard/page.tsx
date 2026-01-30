@@ -197,17 +197,18 @@ export default function DashboardPage() {
   // --- GLOBAL RESET ---
   const handleGlobalReset = () => {
       // 1. Reset State
-      setTotalSentLinks(0);
+      // NOTE: Removed setTotalSentLinks(0) to keep Office data intact as requested
       setEntriesCounts({ cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0 });
       
-      // 2. Reset NewTask Stopwatch
+      // 2. Reset Stopwatches (Added General Stopwatch Reset)
+      generalSW.reset();
       newTaskSW.reset(); 
 
       // 3. Clear Persistence
-      localStorage.removeItem('global_total_sent_links');
+      // NOTE: Removed 'global_total_sent_links' removal to keep Office data
       localStorage.removeItem('global_entries_counts');
       localStorage.removeItem('dailyEntryLogs');
-      localStorage.removeItem('dailyEntryCounts'); // <--- CRITICAL FIX: Also clear the child's local storage
+      localStorage.removeItem('dailyEntryCounts');
       
       // 4. Trigger Children Cleanups
       setResetSignal(prev => prev + 1); 
