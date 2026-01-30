@@ -3,11 +3,11 @@ import React, { useState, useEffect } from "react";
 import { X, RotateCcw, Hourglass, Edit2, Check, Zap, Copy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// ... Interfaces (ToggleItem, UpdatesAppProps) ...
+// ... Interfaces ...
 interface UpdatesAppProps { onClose: () => void; totalSentLinks: number; entriesCounts: Record<string, number>; mainHourDecimal: number; ntHourDecimal: number; onGlobalReset: () => void; resetSignal: number; }
 interface ToggleItem { id: string; label: string; checked: boolean; editing: boolean; }
 
-// Updated CloseButton
+// CloseButton: White in dark mode
 const CloseButton = ({ onClick }: { onClick: () => void }) => (
   <button onClick={onClick} className="absolute right-0 top-1/2 -translate-y-1/2 group flex items-center bg-transparent border border-gray-300 dark:border-white/20 rounded-full p-1.5 hover:bg-red-500 hover:border-red-500 hover:pr-3 transition-all duration-300 text-gray-500 dark:text-white hover:text-white">
     <X size={16} />
@@ -24,27 +24,21 @@ export default function UpdatesApp({ onClose, totalSentLinks, entriesCounts, mai
   const [toggles, setToggles] = useState<ToggleItem[]>([]);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
-  // ... (Hooks for persistence, derived values - Same as before) ...
+  // ... Hooks & Logic ...
   const otHourValue = otInput ? Math.max(0, mainHourDecimal - parseFloat(otInput)) : 0;
   const LABELS: Record<string, string> = { cat1: 'LA', cat2: 'FC', cat3: 'FL', cat4: 'Others', cat5: 'Chk Name', cat6: 'Urgent Task' };
   useEffect(() => {
       const savedToggles = localStorage.getItem('elab_toggle_items');
       if (savedToggles) {
           const parsed = JSON.parse(savedToggles);
-          if (parsed.length < 10) {
-              const currentLength = parsed.length; const newItems = []; for(let i = currentLength + 1; i <= 10; i++) newItems.push({ id: String(i), label: `Other Task ${i - 4}`, checked: false, editing: false });
-              setToggles([...parsed, ...newItems]);
-          } else setToggles(parsed);
-      } else {
-          setToggles([ { id: '1', label: 'File Drive & Upload', checked: false, editing: false }, { id: '2', label: 'File Handling', checked: false, editing: false }, { id: '3', label: 'File Download', checked: false, editing: false }, { id: '4', label: 'File Check', checked: false, editing: false }, { id: '5', label: 'Other Task 1', checked: false, editing: false }, { id: '6', label: 'Other Task 2', checked: false, editing: false }, { id: '7', label: 'Other Task 3', checked: false, editing: false }, { id: '8', label: 'Other Task 4', checked: false, editing: false }, { id: '9', label: 'Other Task 5', checked: false, editing: false }, { id: '10', label: 'Other Task 6', checked: false, editing: false }, ]);
-      }
+          if (parsed.length < 10) { const currentLength = parsed.length; const newItems = []; for(let i = currentLength + 1; i <= 10; i++) newItems.push({ id: String(i), label: `Other Task ${i - 4}`, checked: false, editing: false }); setToggles([...parsed, ...newItems]); } else setToggles(parsed);
+      } else { setToggles([ { id: '1', label: 'File Drive & Upload', checked: false, editing: false }, { id: '2', label: 'File Handling', checked: false, editing: false }, { id: '3', label: 'File Download', checked: false, editing: false }, { id: '4', label: 'File Check', checked: false, editing: false }, { id: '5', label: 'Other Task 1', checked: false, editing: false }, { id: '6', label: 'Other Task 2', checked: false, editing: false }, { id: '7', label: 'Other Task 3', checked: false, editing: false }, { id: '8', label: 'Other Task 4', checked: false, editing: false }, { id: '9', label: 'Other Task 5', checked: false, editing: false }, { id: '10', label: 'Other Task 6', checked: false, editing: false }, ]); }
       const savedOT = localStorage.getItem('elab_ot_input'); if (savedOT) setOtInput(savedOT);
   }, []);
   useEffect(() => { if (toggles.length > 0) localStorage.setItem('elab_toggle_items', JSON.stringify(toggles)); }, [toggles]);
   useEffect(() => { localStorage.setItem('elab_ot_input', otInput); }, [otInput]);
   useEffect(() => { if (resetSignal > 0) { setOtInput(''); setToggles(prev => prev.map(t => ({ ...t, checked: false }))); } }, [resetSignal]);
 
-  // (Handlers: handleToggleCheck, handleEditToggle, handleLabelChange, handleCopy, handleCopyOT)
   const handleToggleCheck = (id: string) => setToggles(prev => prev.map(t => t.id === id ? { ...t, checked: !t.checked } : t));
   const handleEditToggle = (id: string) => setToggles(prev => prev.map(t => t.id === id ? { ...t, editing: !t.editing } : t));
   const handleLabelChange = (id: string, newLabel: string) => setToggles(prev => prev.map(t => t.id === id ? { ...t, label: newLabel } : t));
@@ -56,6 +50,7 @@ export default function UpdatesApp({ onClose, totalSentLinks, entriesCounts, mai
   return (
     <div className="h-full flex flex-col relative gap-3 w-full px-2 font-ubuntu">
       <div className="relative flex justify-center items-center shrink-0 min-h-[40px]">
+         {/* Confirmed EntryLab Red: #A80038 */}
          <div className="px-6 py-2 rounded-full bg-[#A80038] text-white font-medium text-sm shadow-lg cursor-default flex items-center gap-2"><Zap size={16} fill="currentColor" /> ELab Updates</div>
          <CloseButton onClick={onClose} />
       </div>
@@ -74,11 +69,9 @@ export default function UpdatesApp({ onClose, totalSentLinks, entriesCounts, mai
       </div>
 
       <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-3 flex items-center justify-between shadow-sm gap-4 shrink-0 h-20">
-         {/* UPDATED INPUT: Reduced height to h-11, text-gray-800 dark:text-white */}
          <input type="number" placeholder="Enter General Hour" value={otInput} onChange={(e) => { const val = parseFloat(e.target.value); if (val >= 0 || e.target.value === '') setOtInput(e.target.value); }} className="w-48 bg-white/60 dark:bg-black/20 border border-gray-300 dark:border-gray-600 rounded-xl px-4 h-11 text-center outline-none focus:ring-2 focus:ring-blue-400/50 no-spinner font-medium text-lg placeholder:text-sm placeholder:font-normal placeholder:text-gray-400 text-gray-800 dark:text-white" />
          
          <div className="flex-1 flex items-center justify-center gap-2 min-w-[140px] text-blue-600 dark:text-blue-400"><span className="text-2xl font-bold uppercase tracking-wide">OT Hour:</span><span className="text-2xl font-bold tabular-nums min-w-[60px] text-left">{otHourValue.toFixed(2)}</span></div>
-         {/* Button height h-11 matches input */}
          <button onClick={handleCopyOT} className="w-32 flex items-center justify-center gap-2 bg-transparent border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white hover:bg-black/5 dark:hover:bg-white/10 px-4 h-11 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 shrink-0">{otCopied ? <Check size={16}/> : <Copy size={16}/>}{otCopied ? 'Copied' : 'Copy OT'}</button>
       </div>
 
