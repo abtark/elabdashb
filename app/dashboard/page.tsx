@@ -83,7 +83,6 @@ const useStopwatch = (id: string) => {
   };
 
   const lap = () => {
-    // Current total time IS the lap time snapshot
     const currentTotal = state.elapsed + (state.isRunning ? (Date.now() - state.startTime) - state.elapsed : 0);
     setState(prev => ({ ...prev, laps: [currentTotal, ...prev.laps] }));
   };
@@ -156,9 +155,18 @@ export default function DashboardPage() {
   const [activeApp, setActiveApp] = useState<string | null>('newtask');
   const [isClient, setIsClient] = useState(false);
   
+  // --- SHARED STATE ---
   const [totalSentLinks, setTotalSentLinks] = useState(0);
-  const [totalDailyEntries, setTotalDailyEntries] = useState(0);
+  
+  // LIFTED: Daily Entries Data (So UpdatesApp can read "LA: 10, FC: 20")
+  const [entriesCounts, setEntriesCounts] = useState<Record<string, number>>({
+    cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0
+  });
+
   const [showBubbles, setShowBubbles] = useState(false);
+  
+  // Global Reset Signal (Increment to trigger resets in children)
+  const [resetSignal, setResetSignal] = useState(0);
 
   const generalSW = useStopwatch('general');
   const newTaskSW = useStopwatch('newtask');
@@ -173,6 +181,12 @@ export default function DashboardPage() {
       const newState = !showBubbles;
       setShowBubbles(newState);
       localStorage.setItem('show_stopwatch_bubbles', JSON.stringify(newState));
+  };
+
+  const handleGlobalReset = () => {
+      setTotalSentLinks(0);
+      setEntriesCounts({ cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0 });
+      setResetSignal(prev => prev + 1); // Trigger children cleanup
   };
 
   const formatTime = (ms: number) => {
@@ -237,10 +251,42 @@ export default function DashboardPage() {
               <AnimatePresence mode="wait">
                 {activeApp ? (
                   <motion.div key={activeApp} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }} transition={{ duration: 0.2 }} className="h-full w-full flex flex-col p-6 pt-6">
-                     {activeApp === 'newtask' && <NewTaskApp onClose={handleClose} totalSentLinks={totalSentLinks} setTotalSentLinks={setTotalSentLinks} />}
-                     {activeApp === 'entries' && <EntriesApp onClose={handleClose} setGlobalTotal={setTotalDailyEntries} />}
-                     {activeApp === 'tracker' && <TrackerApp onClose={handleClose} generalSW={generalSW} newTaskSW={newTaskSW} formatTime={formatTime} showBubbles={showBubbles} toggleBubbles={toggleBubbles} />}
-                     {activeApp === 'updates' && <UpdatesApp onClose={handleClose} totalSentLinks={totalSentLinks} totalDailyEntry={totalDailyEntries} generalElapsed={generalSW.elapsed} newTaskElapsed={newTaskSW.elapsed} />}
+                     {activeApp === 'newtask' && (
+                       <NewTaskApp 
+                         onClose={handleClose} 
+                         totalSentLinks={totalSentLinks} 
+                         setTotalSentLinks={setTotalSentLinks} 
+                         resetSignal={resetSignal} // Pass Reset Signal
+                       />
+                     )}
+                     {activeApp === 'entries' && (
+                       <EntriesApp 
+                         onClose={handleClose} 
+                         counts={entriesCounts} // Pass Lifted State
+                         setCounts={setEntriesCounts} 
+                         resetSignal={resetSignal} // Pass Reset Signal
+                       />
+                     )}
+                     {activeApp === 'tracker' && (
+                       <TrackerApp 
+                         onClose={handleClose} 
+                         generalSW={generalSW} 
+                         newTaskSW={newTaskSW} 
+                         formatTime={formatTime} 
+                         showBubbles={showBubbles} 
+                         toggleBubbles={toggleBubbles} 
+                       />
+                     )}
+                     {activeApp === 'updates' && (
+                       <UpdatesApp 
+                         onClose={handleClose} 
+                         totalSentLinks={totalSentLinks}
+                         entriesCounts={entriesCounts} // Pass Full Data
+                         generalElapsed={generalSW.elapsed}
+                         newTaskElapsed={newTaskSW.elapsed}
+                         onGlobalReset={handleGlobalReset} // Pass Global Reset Function
+                       />
+                     )}
                      {activeApp === 'snacks' && <SnacksApp onClose={handleClose} />}
                   </motion.div>
                 ) : (
