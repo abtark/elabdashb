@@ -200,14 +200,16 @@ export default function DashboardPage() {
       setTotalSentLinks(0);
       setEntriesCounts({ cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0 });
       
-      // 2. Clear Persistence
+      // 2. Reset NewTask Stopwatch (Tracker Page)
+      newTaskSW.reset(); 
+
+      // 3. Clear Persistence (BUT KEEP EMAILS)
       localStorage.removeItem('global_total_sent_links');
       localStorage.removeItem('global_entries_counts');
       localStorage.removeItem('dailyEntryLogs'); // Clear local logs in Entries App
-      localStorage.removeItem('newTaskEmails'); // Clear emails? (Optional, based on "All Daily Progress") - keeping emails might be safer, but resetting "Self Page" usually means numbers.
-      // Note: Components listen to resetSignal to clear their specific internal logs/inputs
+      // REMOVED: localStorage.removeItem('newTaskEmails'); -> Emails are now safe!
       
-      // 3. Trigger Children
+      // 4. Trigger Children Cleanups (Sent Link Logs, etc.)
       setResetSignal(prev => prev + 1); 
   };
 
@@ -289,8 +291,8 @@ export default function DashboardPage() {
                          onClose={handleClose} 
                          totalSentLinks={totalSentLinks} 
                          entriesCounts={entriesCounts} 
-                         mainHourDecimal={getHourDecimal(generalSW.elapsed)} // Pass pre-calculated decimal
-                         ntHourDecimal={getHourDecimal(newTaskSW.elapsed)}   // Pass pre-calculated decimal
+                         mainHourDecimal={getHourDecimal(generalSW.elapsed)} 
+                         ntHourDecimal={getHourDecimal(newTaskSW.elapsed)}   
                          onGlobalReset={handleGlobalReset} 
                          resetSignal={resetSignal}
                        />
