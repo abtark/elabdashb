@@ -155,7 +155,7 @@ export default function DashboardPage() {
   const [activeApp, setActiveApp] = useState<string | null>('newtask');
   const [isClient, setIsClient] = useState(false);
   
-  // --- SHARED STATE (LIFTED & PERSISTENT) ---
+  // --- SHARED STATE ---
   const [totalSentLinks, setTotalSentLinks] = useState(0);
   const [entriesCounts, setEntriesCounts] = useState<Record<string, number>>({
     cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0
@@ -200,16 +200,15 @@ export default function DashboardPage() {
       setTotalSentLinks(0);
       setEntriesCounts({ cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0 });
       
-      // 2. Reset NewTask Stopwatch (Tracker Page)
+      // 2. Reset NewTask Stopwatch
       newTaskSW.reset(); 
 
       // 3. Clear Persistence (BUT KEEP EMAILS)
       localStorage.removeItem('global_total_sent_links');
       localStorage.removeItem('global_entries_counts');
-      localStorage.removeItem('dailyEntryLogs'); // Clear local logs in Entries App
-      // REMOVED: localStorage.removeItem('newTaskEmails'); -> Emails are now safe!
+      localStorage.removeItem('dailyEntryLogs');
       
-      // 4. Trigger Children Cleanups (Sent Link Logs, etc.)
+      // 4. Trigger Children Cleanups
       setResetSignal(prev => prev + 1); 
   };
 
@@ -220,9 +219,8 @@ export default function DashboardPage() {
     return `${h.toString().padStart(2, '0')}:${(m % 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
   };
 
-  // Helper for Updates Page (Hours + Min only, no seconds)
   const getHourDecimal = (ms: number) => {
-      const totalMinutes = Math.floor(ms / 60000); // Ignore seconds completely
+      const totalMinutes = Math.floor(ms / 60000); 
       const hours = Math.floor(totalMinutes / 60);
       const minutes = totalMinutes % 60;
       return hours + (minutes / 60);
@@ -286,17 +284,7 @@ export default function DashboardPage() {
                      {activeApp === 'newtask' && <NewTaskApp onClose={handleClose} totalSentLinks={totalSentLinks} setTotalSentLinks={setTotalSentLinks} resetSignal={resetSignal} />}
                      {activeApp === 'entries' && <EntriesApp onClose={handleClose} counts={entriesCounts} setCounts={setEntriesCounts} resetSignal={resetSignal} />}
                      {activeApp === 'tracker' && <TrackerApp onClose={handleClose} generalSW={generalSW} newTaskSW={newTaskSW} formatTime={formatTime} showBubbles={showBubbles} toggleBubbles={toggleBubbles} />}
-                     {activeApp === 'updates' && (
-                       <UpdatesApp 
-                         onClose={handleClose} 
-                         totalSentLinks={totalSentLinks} 
-                         entriesCounts={entriesCounts} 
-                         mainHourDecimal={getHourDecimal(generalSW.elapsed)} 
-                         ntHourDecimal={getHourDecimal(newTaskSW.elapsed)}   
-                         onGlobalReset={handleGlobalReset} 
-                         resetSignal={resetSignal}
-                       />
-                     )}
+                     {activeApp === 'updates' && <UpdatesApp onClose={handleClose} totalSentLinks={totalSentLinks} entriesCounts={entriesCounts} mainHourDecimal={getHourDecimal(generalSW.elapsed)} ntHourDecimal={getHourDecimal(newTaskSW.elapsed)} onGlobalReset={handleGlobalReset} resetSignal={resetSignal} />}
                      {activeApp === 'snacks' && <SnacksApp onClose={handleClose} />}
                   </motion.div>
                 ) : (
