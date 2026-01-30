@@ -26,14 +26,14 @@ export default function LoginPage() {
         setError(true);
         setLoading(false);
       }
-    }, 1500); // Simulate network delay for smooth UX
+    }, 1500); 
   };
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Abstract blobs for depth */}
-      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-600/30 rounded-full blur-[100px]" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-600/30 rounded-full blur-[100px]" />
+    <main className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-gray-50 dark:bg-[#050505] transition-colors duration-500">
+      {/* Background Abstract blobs */}
+      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-500/20 dark:bg-purple-600/30 rounded-full blur-[100px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-500/20 dark:bg-blue-600/30 rounded-full blur-[100px]" />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -42,7 +42,7 @@ export default function LoginPage() {
         className="w-full max-w-[750px] max-h-[95vh] flex flex-col items-center justify-center relative z-10"
       >
         {/* Glass Container */}
-        <div className="w-full bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-8 md:p-12 overflow-y-auto">
+        <div className="w-full bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-2xl rounded-3xl p-8 md:p-12 overflow-y-auto">
           
           {/* Logo Section */}
           <motion.div 
@@ -67,7 +67,7 @@ export default function LoginPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-3xl md:text-4xl font-bold text-center text-white mb-2 tracking-wide"
+            className="text-3xl md:text-4xl font-bold text-center text-gray-800 dark:text-white mb-2 tracking-wide"
           >
             Log in to Emanistation
           </motion.h1>
@@ -75,7 +75,7 @@ export default function LoginPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="text-white/50 text-center mb-10 text-sm md:text-base"
+            className="text-gray-500 dark:text-white/50 text-center mb-10 text-sm md:text-base"
           >
             Welcome back, please enter your details.
           </motion.p>
@@ -90,7 +90,7 @@ export default function LoginPage() {
               transition={{ delay: 0.5 }}
               className="relative group"
             >
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/50 group-focus-within:text-white transition-colors">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 dark:text-white/50 group-focus-within:text-blue-500 dark:group-focus-within:text-white transition-colors">
                 <FaUser />
               </div>
               <input
@@ -98,7 +98,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-black/20 border border-white/10 text-white placeholder-white/30 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent block w-full pl-10 p-4 transition-all duration-300 outline-none hover:bg-black/30"
+                className="w-full bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-white/30 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent block w-full pl-10 p-4 transition-all duration-300 outline-none shadow-sm"
                 placeholder="Enter your Email"
               />
             </motion.div>
@@ -110,7 +110,7 @@ export default function LoginPage() {
               transition={{ delay: 0.6 }}
               className="relative group"
             >
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/50 group-focus-within:text-white transition-colors">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 dark:text-white/50 group-focus-within:text-blue-500 dark:group-focus-within:text-white transition-colors">
                 <FaKey />
               </div>
               <input
@@ -118,7 +118,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-black/20 border border-white/10 text-white placeholder-white/30 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent block w-full pl-10 p-4 transition-all duration-300 outline-none hover:bg-black/30"
+                className="w-full bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-white/30 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent block w-full pl-10 p-4 transition-all duration-300 outline-none shadow-sm"
                 placeholder="Enter your Password"
               />
             </motion.div>
@@ -130,10 +130,10 @@ export default function LoginPage() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="text-red-400 text-sm text-center flex flex-col gap-1"
+                  className="text-red-500 dark:text-red-400 text-sm text-center flex flex-col gap-1"
                 >
                   <span>Invalid credentials.</span>
-                  <button type="button" className="underline hover:text-red-300 transition-colors">
+                  <button type="button" className="underline hover:text-red-600 dark:hover:text-red-300 transition-colors">
                     Forget password?
                   </button>
                 </motion.div>
@@ -163,9 +163,9 @@ export default function LoginPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
-            className="mt-8 text-center text-sm text-white/60"
+            className="mt-8 text-center text-sm text-gray-500 dark:text-white/60"
           >
-            New? <span className="text-white font-semibold cursor-pointer hover:underline">Create an account.</span>
+            New? <span className="text-blue-600 dark:text-white font-semibold cursor-pointer hover:underline">Create an account.</span>
           </motion.div>
 
         </div>
