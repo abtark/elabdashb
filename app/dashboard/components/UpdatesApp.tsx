@@ -50,28 +50,23 @@ export default function UpdatesApp({
   onClose, totalSentLinks, entriesCounts, mainHourDecimal, ntHourDecimal, onGlobalReset, resetSignal 
 }: UpdatesAppProps) {
   
-  // Local State
   const [otInput, setOtInput] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [toggles, setToggles] = useState<ToggleItem[]>([]);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
   // Derived Values
-  // OT Calculation: If input empty -> 0. If input exists -> Main - Input
   const otHourValue = otInput ? Math.max(0, mainHourDecimal - parseFloat(otInput)) : 0;
   
   const LABELS: Record<string, string> = {
     cat1: 'LA', cat2: 'FC', cat3: 'FL', cat4: 'Others', cat5: 'Chk Name', cat6: 'Urgent Task'
   };
 
-  // --- INITIALIZATION & PERSISTENCE ---
   useEffect(() => {
-      // Load Toggles
       const savedToggles = localStorage.getItem('elab_toggle_items');
       if (savedToggles) {
           setToggles(JSON.parse(savedToggles));
       } else {
-          // Default 6 items
           setToggles([
               { id: '1', label: 'File Drive & Upload', checked: false, editing: false },
               { id: '2', label: 'File Handling', checked: false, editing: false },
@@ -81,8 +76,6 @@ export default function UpdatesApp({
               { id: '6', label: 'Other Task 2', checked: false, editing: false },
           ]);
       }
-
-      // Load OT Input
       const savedOT = localStorage.getItem('elab_ot_input');
       if (savedOT) setOtInput(savedOT);
   }, []);
@@ -95,15 +88,14 @@ export default function UpdatesApp({
       localStorage.setItem('elab_ot_input', otInput);
   }, [otInput]);
 
-  // Handle Global Reset Signal locally
+  // RESET SIGNAL: Clears OT Input AND resets toggles
   useEffect(() => {
       if (resetSignal > 0) {
           setOtInput('');
-          // Note: Toggles are preferences, typically not reset daily, but logic can be added if needed.
+          setToggles(prev => prev.map(t => ({ ...t, checked: false })));
       }
   }, [resetSignal]);
 
-  // --- HANDLERS ---
   const handleToggleCheck = (id: string) => {
       setToggles(prev => prev.map(t => t.id === id ? { ...t, checked: !t.checked } : t));
   };
@@ -116,36 +108,27 @@ export default function UpdatesApp({
       setToggles(prev => prev.map(t => t.id === id ? { ...t, label: newLabel } : t));
   };
 
-  // --- SUMMARY GENERATION ---
   const generateSummary = () => {
       const parts = [];
-
-      // 1. Entries
       Object.entries(entriesCounts).forEach(([key, val]) => {
           if (val > 0) parts.push(`${LABELS[key]}: ${val}`);
       });
-
-      // 2. New Task Hour
       if (ntHourDecimal > 0) {
           const ntStr = `NewTask ${ntHourDecimal.toFixed(2)}h` + (totalSentLinks > 0 ? ` (${totalSentLinks})` : '');
           parts.push(ntStr);
       } else if (totalSentLinks > 0) {
           parts.push(`NewTask (${totalSentLinks})`);
       }
-
-      // 3. Toggles
       const activeToggles = toggles.filter(t => t.checked).map(t => t.label);
       if (activeToggles.length > 0) {
           parts.push(`[${activeToggles.join(', ')}]`);
       }
-
       return parts.join(', ');
   };
 
   const summaryText = generateSummary(); 
   const displayText = summaryText || "No updates available.";
   const isCopyable = summaryText.length > 0;
-  
   const totalEntries = Object.values(entriesCounts).reduce((a,b)=>a+b,0);
 
   const handleCopy = () => {
@@ -158,7 +141,6 @@ export default function UpdatesApp({
   return (
     <div className="h-full flex flex-col relative gap-4 w-full px-2 font-ubuntu">
       
-      {/* 1. Header (Red Background, Icon) */}
       <div className="relative flex justify-center items-center shrink-0 min-h-[40px]">
          <div className="px-6 py-2 rounded-full bg-[#A80038] text-white font-medium text-sm shadow-lg cursor-default flex items-center gap-2">
             <Zap size={16} fill="currentColor" /> ELab Updates
@@ -166,7 +148,6 @@ export default function UpdatesApp({
          <CloseButton onClick={onClose} />
       </div>
 
-      {/* 2. Top Stats Bar with Reset */}
       <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-4 flex justify-between items-center text-sm font-bold shadow-sm backdrop-blur-md shrink-0">
          <div className="flex items-center gap-2">
             <span className="text-gray-600 dark:text-gray-300">Total Sent Links:</span> 
@@ -178,15 +159,11 @@ export default function UpdatesApp({
             <span className="bg-green-100/50 dark:bg-green-500/10 px-3 py-1 rounded text-green-600 dark:text-green-400">{totalEntries}</span>
          </div>
          <div className="h-4 w-px bg-gray-300 dark:bg-white/10"></div>
-         <button 
-            onClick={() => setResetConfirmOpen(true)}
-            className="flex items-center gap-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1.5 rounded-lg transition-colors border border-red-500/20"
-         >
+         <button onClick={() => setResetConfirmOpen(true)} className="flex items-center gap-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1.5 rounded-lg transition-colors border border-red-500/20">
             <RotateCcw size={14}/> Reset
          </button>
       </div>
 
-      {/* 3. Hours Row */}
       <div className="flex gap-4 w-full">
          <div className="flex-1 bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-4 text-center shadow-sm">
             <div className="text-xs font-bold mb-2 flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400 uppercase tracking-wider"><Hourglass size={12}/> Main Hour</div>
@@ -198,9 +175,8 @@ export default function UpdatesApp({
          </div>
       </div>
 
-      {/* 4. OT Hour Row (Justify Around) */}
+      {/* Justify Around for OT Row */}
       <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-4 flex items-center justify-around shadow-sm">
-         {/* Wider Input Box */}
          <input 
             type="number" 
             placeholder="Enter General Hour" 
@@ -217,17 +193,14 @@ export default function UpdatesApp({
          </div>
       </div>
 
-      {/* 5. Toggles Grid (6 Items, Reduced Height) */}
+      {/* Toggles: Reduced Height & Spacing */}
       <div className="grid grid-cols-2 gap-2 flex-1 overflow-y-auto custom-scrollbar p-1">
          {toggles.map(item => (
-            // Small Height (py-1)
-            <div key={item.id} className="group flex justify-between items-center px-3 py-1 rounded-xl border border-transparent bg-white/40 dark:bg-white/5 hover:border-white/30 transition-all shadow-sm">
-               
+            <div key={item.id} className="group flex justify-between items-center px-3 py-1 rounded-xl border border-transparent bg-white/40 dark:bg-white/5 hover:border-white/30 transition-all shadow-sm h-10">
                <div className="flex items-center gap-2 flex-1 min-w-0">
                    <button onClick={() => handleEditToggle(item.id)} className="text-gray-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                       {item.editing ? <Check size={14} className="text-green-500"/> : <Edit2 size={14}/>}
+                       {item.editing ? <Check size={12} className="text-green-500"/> : <Edit2 size={12}/>}
                    </button>
-                   
                    {item.editing ? (
                        <input 
                           value={item.label}
@@ -240,55 +213,29 @@ export default function UpdatesApp({
                        <span className="text-xs font-medium text-gray-700 dark:text-gray-200 truncate select-none" title={item.label}>{item.label}</span>
                    )}
                </div>
-
                <div onClick={() => handleToggleCheck(item.id)} className={`cursor-pointer w-8 h-4 rounded-full p-0.5 flex items-center shadow-inner transition-colors duration-300 ${item.checked ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}>
-                  <motion.div 
-                    initial={false}
-                    animate={{ x: item.checked ? 16 : 0 }}
-                    transition={{ type: "spring", stiffness: 700, damping: 30 }}
-                    className="w-3 h-3 bg-white rounded-full shadow-sm"
-                  />
+                  <motion.div initial={false} animate={{ x: item.checked ? 16 : 0 }} transition={{ type: "spring", stiffness: 700, damping: 30 }} className="w-3 h-3 bg-white rounded-full shadow-sm" />
                </div>
             </div>
          ))}
       </div>
 
-      {/* 6. Summary Box */}
       <div className="relative">
-        <div 
-            onClick={handleCopy}
-            className={`bg-white/60 dark:bg-black/40 border border-white/30 dark:border-white/10 rounded-2xl p-4 text-center transition-all duration-300 shadow-sm shrink-0 min-h-[80px] flex flex-col justify-center items-center
-                ${isCopyable ? 'cursor-pointer hover:bg-white/80 dark:hover:bg-white/10' : 'cursor-not-allowed opacity-70'}
-                ${copied ? 'bg-green-100/80 dark:bg-green-900/30 border-green-500/50 scale-[1.02]' : ''}
-            `}
-        >
+        <div onClick={handleCopy} className={`bg-white/60 dark:bg-black/40 border border-white/30 dark:border-white/10 rounded-2xl p-4 text-center transition-all duration-300 shadow-sm shrink-0 min-h-[80px] flex flex-col justify-center items-center ${isCopyable ? 'cursor-pointer hover:bg-white/80 dark:hover:bg-white/10' : 'cursor-not-allowed opacity-70'} ${copied ? 'bg-green-100/80 dark:bg-green-900/30 border-green-500/50 scale-[1.02]' : ''}`}>
             <div className="font-medium text-sm text-gray-800 dark:text-gray-200 break-words leading-relaxed select-none w-full">
                 {displayText}
             </div>
         </div>
-        
         <AnimatePresence>
             {copied && (
-                <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute bottom-2 left-0 right-0 text-center pointer-events-none"
-                >
-                    <span className="text-[10px] uppercase font-bold text-green-600 dark:text-green-400 bg-white/80 dark:bg-black/80 px-2 py-0.5 rounded-full shadow-sm">
-                        Copied to clipboard!
-                    </span>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute bottom-2 left-0 right-0 text-center pointer-events-none">
+                    <span className="text-[10px] uppercase font-bold text-green-600 dark:text-green-400 bg-white/80 dark:bg-black/80 px-2 py-0.5 rounded-full shadow-sm">Copied to clipboard!</span>
                 </motion.div>
             )}
         </AnimatePresence>
       </div>
 
-      <ConfirmModal 
-        isOpen={resetConfirmOpen} 
-        onClose={() => setResetConfirmOpen(false)} 
-        onConfirm={onGlobalReset} 
-        message="Reset ALL daily progress across Dashboard (Entries, Links, Updates, Timer)?" 
-      />
+      <ConfirmModal isOpen={resetConfirmOpen} onClose={() => setResetConfirmOpen(false)} onConfirm={onGlobalReset} message="Reset ALL daily progress across Dashboard (Entries, Links, Updates)?" />
     </div>
   );
 }
