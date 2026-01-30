@@ -9,7 +9,6 @@ import {
 import { FaDiscord } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-// --- TYPES ---
 interface EmailItem {
   id: string;
   text: string;
@@ -23,7 +22,6 @@ interface LogItem {
   txt: string;
 }
 
-// --- UTILS ---
 const CloseButton = ({ onClick }: { onClick: () => void }) => (
   <button onClick={onClick} className="absolute right-0 top-1/2 -translate-y-1/2 group flex items-center bg-transparent border border-white/20 dark:border-white/10 rounded-full p-1.5 hover:bg-red-500 hover:border-red-500 hover:pr-3 transition-all duration-300 text-gray-500 dark:text-gray-400 hover:text-white">
     <X size={16} />
@@ -31,7 +29,6 @@ const CloseButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
-// --- GLOBAL MODALS ---
 const Modal = ({ isOpen, onClose, title, children }: any) => {
   if (!isOpen) return null;
   return (
@@ -78,10 +75,21 @@ const AlertModal = ({ isOpen, onClose, message }: any) => {
   );
 };
 
-// --- LINKEDIN SALES SECTION ---
 const LinkedInSection = ({ triggerConfirm }: { triggerConfirm: (msg: string, action: () => void) => void }) => {
   const [totalSales, setTotalSales] = useState<number | ''>('');
   const [currentPage, setCurrentPage] = useState<number | ''>('');
+
+  useEffect(() => {
+      const savedSales = localStorage.getItem('nt_self_total_sales');
+      const savedPage = localStorage.getItem('nt_self_current_page');
+      if (savedSales) setTotalSales(Number(savedSales));
+      if (savedPage) setCurrentPage(Number(savedPage));
+  }, []);
+
+  useEffect(() => {
+      localStorage.setItem('nt_self_total_sales', String(totalSales));
+      localStorage.setItem('nt_self_current_page', String(currentPage));
+  }, [totalSales, currentPage]);
 
   const calculate = () => {
     const total = Number(totalSales) || 0;
@@ -123,8 +131,6 @@ const LinkedInSection = ({ triggerConfirm }: { triggerConfirm: (msg: string, act
       </div>
 
       <div className="flex flex-nowrap items-center justify-center w-full mt-1 gap-6">
-        
-        {/* WIDER INPUT: w-48 */}
         <div className="flex items-center gap-3 w-[290px] justify-end">
           <input 
             type="number" 
@@ -141,7 +147,6 @@ const LinkedInSection = ({ triggerConfirm }: { triggerConfirm: (msg: string, act
 
         <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
 
-        {/* WIDER INPUT: w-48 */}
         <div className="flex items-center gap-3 w-[290px] justify-start">
           <input 
             type="number" 
@@ -160,7 +165,6 @@ const LinkedInSection = ({ triggerConfirm }: { triggerConfirm: (msg: string, act
   );
 };
 
-// --- SENT LINKS SECTION ---
 const SentLinksSection = ({ 
     total, 
     setTotal, 
@@ -186,7 +190,6 @@ const SentLinksSection = ({
 
   return (
     <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 mb-3 backdrop-blur-md shadow-sm flex items-center justify-between w-full gap-3">
-      {/* WIDER INPUT: w-32 */}
       <div className="flex items-center gap-2 w-[180px]">
         <input 
           type="number" 
@@ -205,7 +208,6 @@ const SentLinksSection = ({
 
       <div className="flex items-center gap-2 flex-1 justify-center">
           <span className="text-blue-600 dark:text-blue-400 font-bold text-sm whitespace-nowrap w-[120px] text-right">Total Sent Links =</span>
-          {/* REDUCED PADDING: py-1 */}
           <div className="bg-blue-100/50 dark:bg-blue-500/10 border border-blue-500/30 rounded-lg px-8 py-1 min-w-[100px] w-[100px] text-center flex justify-center items-center h-[34px]">
             <span className="text-lg font-bold text-blue-700 dark:text-blue-300 tabular-nums leading-none">{total}</span>
           </div>
@@ -228,7 +230,6 @@ const SentLinksSection = ({
   );
 };
 
-// --- EMAIL MANAGER ---
 const EmailManagerSection = ({ triggerAlert, triggerConfirm }: { triggerAlert: any, triggerConfirm: any }) => {
   const [emails, setEmails] = useState<EmailItem[]>([]);
   const [pageIndex, setPageIndex] = useState(0); 
@@ -237,7 +238,6 @@ const EmailManagerSection = ({ triggerAlert, triggerConfirm }: { triggerAlert: a
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   
-  // Persistence
   useEffect(() => {
     const saved = localStorage.getItem('newTaskEmails');
     if (saved) setEmails(JSON.parse(saved));
@@ -353,14 +353,29 @@ const EmailManagerSection = ({ triggerAlert, triggerConfirm }: { triggerAlert: a
   );
 };
 
-// --- OFFICE PAGE ---
-const OfficePage = ({ triggerConfirm }: { triggerConfirm: any }) => {
+const OfficePage = ({ triggerConfirm, resetSignal }: { triggerConfirm: any, resetSignal: number }) => {
   const [target, setTarget] = useState(10000);
   const [inputs, setInputs] = useState<Record<string, string>>({});
   const [isSending, setIsSending] = useState(false);
   const [isSent, setIsSent] = useState(false);
   
   const hours = ['08 AM', '09 AM', '10 AM', '11 AM', '12 PM', '01 PM', '02 PM', '03 PM', '04 PM', '05 PM', '06 PM', '07 PM', '08 PM'];
+
+  useEffect(() => {
+      const savedTarget = localStorage.getItem('nt_office_target');
+      const savedInputs = localStorage.getItem('nt_office_inputs');
+      if (savedTarget) setTarget(Number(savedTarget));
+      if (savedInputs) setInputs(JSON.parse(savedInputs));
+  }, []);
+
+  useEffect(() => {
+      localStorage.setItem('nt_office_target', String(target));
+      localStorage.setItem('nt_office_inputs', JSON.stringify(inputs));
+  }, [target, inputs]);
+
+  useEffect(() => {
+      if (resetSignal > 0) setInputs({});
+  }, [resetSignal]);
 
   const calculateTotals = () => {
     let sales = 0, search = 0;
@@ -404,7 +419,6 @@ const OfficePage = ({ triggerConfirm }: { triggerConfirm: any }) => {
 
   return (
     <div className="space-y-4 h-full overflow-y-auto pr-1 pb-4 custom-scrollbar">
-      {/* Target Section */}
       <div className="bg-blue-100/50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/20 rounded-2xl p-4 flex items-center justify-between">
          <div className="flex items-center gap-2 min-w-[200px]">
             <span className="font-bold text-blue-700 dark:text-blue-300">Targeted Value</span>
@@ -417,11 +431,9 @@ const OfficePage = ({ triggerConfirm }: { triggerConfirm: any }) => {
          <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 font-bold">
                <LinkIcon size={16} /> <span className="whitespace-nowrap">Total Sent Links:</span> 
-               {/* Fixed Width 140px to stop jitter */}
                <span className="bg-white dark:bg-black/20 px-8 py-1 rounded-lg border border-blue-300 min-w-[140px] text-center tabular-nums inline-block">{officeTotal.toLocaleString()}</span>
             </div>
             
-            {/* Discord Send Button */}
             <div className="w-[140px] flex justify-end">
                 <button 
                 onClick={sendToDiscord} 
@@ -441,13 +453,11 @@ const OfficePage = ({ triggerConfirm }: { triggerConfirm: any }) => {
          </div>
       </div>
 
-      {/* Milestone */}
       <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-6 text-center shadow-sm">
          <h3 className="text-xl font-bold text-gray-700 dark:text-white mb-1 tabular-nums">Sent Links: {officeTotal.toLocaleString()}</h3>
          <p className="text-red-500 font-medium text-sm tabular-nums">Need to send more <span className="font-bold text-red-600">{needed.toLocaleString()}</span> links to reach {target/1000}k Milestone</p>
       </div>
 
-      {/* Grid Inputs */}
       <div className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 shadow-sm">
          <div className="grid grid-cols-[1fr_80px_1fr] gap-4 mb-4 text-center font-bold text-blue-600 dark:text-blue-400 text-sm">
             <div className="flex items-center justify-center gap-2">Sales <Compass size={14}/></div>
@@ -475,7 +485,6 @@ const OfficePage = ({ triggerConfirm }: { triggerConfirm: any }) => {
   );
 };
 
-// --- PARENT ---
 interface NewTaskAppProps {
   onClose: () => void;
   totalSentLinks: number;
@@ -486,18 +495,15 @@ interface NewTaskAppProps {
 export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks, resetSignal }: NewTaskAppProps) {
   const [activeTab, setActiveTab] = useState<'self' | 'office'>('self');
   
-  // Top-Level Modal States
   const [alertInfo, setAlertInfo] = useState<{isOpen: boolean, message: string}>({isOpen: false, message: ''});
   const [confirmInfo, setConfirmInfo] = useState<{isOpen: boolean, message: string, onConfirm: () => void}>({isOpen: false, message: '', onConfirm: () => {}});
   const [logModalInfo, setLogModalInfo] = useState<{isOpen: boolean, title: string, logs: LogItem[]}>({isOpen: false, title: '', logs: []});
 
-  // Local state for Sent Links Logs
   const [sentLinksLogs, setSentLinksLogs] = useState<LogItem[]>([]);
 
-  // Watch Reset Signal
   useEffect(() => {
       if (resetSignal > 0) {
-          setSentLinksLogs([]); // Clear logs when global reset happens
+          setSentLinksLogs([]); 
       }
   }, [resetSignal]);
 
@@ -530,7 +536,6 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks,
         <button onClick={() => setActiveTab('self')} className={`flex items-center gap-2 px-6 py-2 rounded-full transition-all text-sm font-medium border ${activeTab === 'self' ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-white/20 dark:bg-white/5 border-transparent hover:bg-white/40 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400'}`}>
           <User size={16} /> Self
         </button>
-        {/* Office Button: Discord Color #5865F2 */}
         <button onClick={() => setActiveTab('office')} className={`flex items-center gap-2 px-6 py-2 rounded-full transition-all text-sm font-medium border ${activeTab === 'office' ? 'bg-[#5865F2] border-[#5865F2] text-white shadow-lg shadow-[#5865F2]/20' : 'bg-white/20 dark:bg-white/5 border-transparent hover:bg-white/40 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400'}`}>
           <Building size={16} /> Office
         </button>
@@ -553,7 +558,7 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks,
              </div>
            </div>
         ) : (
-          <OfficePage triggerConfirm={triggerConfirm} />
+          <OfficePage triggerConfirm={triggerConfirm} resetSignal={resetSignal} />
         )}
         
         <AlertModal 
@@ -568,7 +573,6 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks,
             message={confirmInfo.message}
         />
         
-        {/* GLOBAL LOGS MODAL (CENTERED) */}
         <Modal 
             isOpen={logModalInfo.isOpen} 
             onClose={() => setLogModalInfo({isOpen: false, title: '', logs: []})} 
