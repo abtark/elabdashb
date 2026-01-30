@@ -1,6 +1,7 @@
+{
 "use client";
 import React, { useState, useEffect } from "react";
-import { X, RotateCcw, Hourglass, Edit2, Check, Zap } from "lucide-react";
+import { X, RotateCcw, Hourglass, Edit2, Check, Zap, Copy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // --- TYPES ---
@@ -52,6 +53,7 @@ export default function UpdatesApp({
   
   const [otInput, setOtInput] = useState<string>('');
   const [copied, setCopied] = useState(false);
+  const [otCopied, setOtCopied] = useState(false); // Specific for OT button
   const [toggles, setToggles] = useState<ToggleItem[]>([]);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
@@ -65,7 +67,18 @@ export default function UpdatesApp({
   useEffect(() => {
       const savedToggles = localStorage.getItem('elab_toggle_items');
       if (savedToggles) {
-          setToggles(JSON.parse(savedToggles));
+          const parsed = JSON.parse(savedToggles);
+          // Ensure we have 10 items even if loaded from old state
+          if (parsed.length < 10) {
+              const currentLength = parsed.length;
+              const newItems = [];
+              for(let i = currentLength + 1; i <= 10; i++) {
+                  newItems.push({ id: String(i), label: `Other Task ${i - 4}`, checked: false, editing: false });
+              }
+              setToggles([...parsed, ...newItems]);
+          } else {
+              setToggles(parsed);
+          }
       } else {
           setToggles([
               { id: '1', label: 'File Drive & Upload', checked: false, editing: false },
@@ -74,6 +87,10 @@ export default function UpdatesApp({
               { id: '4', label: 'File Check', checked: false, editing: false },
               { id: '5', label: 'Other Task 1', checked: false, editing: false },
               { id: '6', label: 'Other Task 2', checked: false, editing: false },
+              { id: '7', label: 'Other Task 3', checked: false, editing: false },
+              { id: '8', label: 'Other Task 4', checked: false, editing: false },
+              { id: '9', label: 'Other Task 5', checked: false, editing: false },
+              { id: '10', label: 'Other Task 6', checked: false, editing: false },
           ]);
       }
       const savedOT = localStorage.getItem('elab_ot_input');
@@ -138,8 +155,14 @@ export default function UpdatesApp({
       setTimeout(() => setCopied(false), 1500);
   };
 
+  const handleCopyOT = () => {
+     navigator.clipboard.writeText(otHourValue.toFixed(2));
+     setOtCopied(true);
+     setTimeout(() => setOtCopied(false), 1500);
+  };
+
   return (
-    <div className="h-full flex flex-col relative gap-4 w-full px-2 font-ubuntu">
+    <div className="h-full flex flex-col relative gap-3 w-full px-2 font-ubuntu">
       
       <div className="relative flex justify-center items-center shrink-0 min-h-[40px]">
          <div className="px-6 py-2 rounded-full bg-[#A80038] text-white font-medium text-sm shadow-lg cursor-default flex items-center gap-2">
@@ -148,55 +171,72 @@ export default function UpdatesApp({
          <CloseButton onClick={onClose} />
       </div>
 
-      <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-4 flex justify-between items-center text-sm font-bold shadow-sm backdrop-blur-md shrink-0">
+      <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-3 flex justify-between items-center text-xs sm:text-sm font-bold shadow-sm backdrop-blur-md shrink-0">
          <div className="flex items-center gap-2">
-            <span className="text-gray-600 dark:text-gray-300">Total Sent Links:</span> 
-            <span className="bg-blue-100/50 dark:bg-blue-500/10 px-3 py-1 rounded text-blue-600 dark:text-blue-400">{totalSentLinks}</span>
+            <span className="text-gray-600 dark:text-gray-300">Sent Links:</span> 
+            <span className="bg-blue-100/50 dark:bg-blue-500/10 px-2 py-0.5 rounded text-blue-600 dark:text-blue-400">{totalSentLinks}</span>
          </div>
          <div className="h-4 w-px bg-gray-300 dark:bg-white/10"></div>
          <div className="flex items-center gap-2">
-            <span className="text-gray-600 dark:text-gray-300">Today's Total Entry:</span> 
-            <span className="bg-green-100/50 dark:bg-green-500/10 px-3 py-1 rounded text-green-600 dark:text-green-400">{totalEntries}</span>
+            <span className="text-gray-600 dark:text-gray-300">Total Entry:</span> 
+            <span className="bg-green-100/50 dark:bg-green-500/10 px-2 py-0.5 rounded text-green-600 dark:text-green-400">{totalEntries}</span>
          </div>
          <div className="h-4 w-px bg-gray-300 dark:bg-white/10"></div>
-         <button onClick={() => setResetConfirmOpen(true)} className="flex items-center gap-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1.5 rounded-lg transition-colors border border-red-500/20">
-            <RotateCcw size={14}/> Reset
+         <button onClick={() => setResetConfirmOpen(true)} className="flex items-center gap-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-2 py-1 rounded-lg transition-colors border border-red-500/20">
+            <RotateCcw size={12}/> Reset
          </button>
       </div>
 
-      <div className="flex gap-4 w-full">
-         <div className="flex-1 bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-4 text-center shadow-sm">
-            <div className="text-xs font-bold mb-2 flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400 uppercase tracking-wider"><Hourglass size={12}/> Main Hour</div>
-            <div className="text-3xl font-bold text-gray-800 dark:text-white tabular-nums">{mainHourDecimal.toFixed(2)}</div>
+      <div className="flex gap-3 w-full shrink-0">
+         <div className="flex-1 bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-3 text-center shadow-sm">
+            <div className="text-[10px] font-bold mb-1 flex items-center justify-center gap-1 text-gray-500 dark:text-gray-400 uppercase tracking-wider"><Hourglass size={10}/> Main Hour</div>
+            <div className="text-2xl font-bold text-gray-800 dark:text-white tabular-nums">{mainHourDecimal.toFixed(2)}</div>
          </div>
-         <div className="flex-1 bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-4 text-center shadow-sm">
-            <div className="text-xs font-bold mb-2 flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400 uppercase tracking-wider"><Hourglass size={12}/> NewTask Hour</div>
-            <div className="text-3xl font-bold text-gray-800 dark:text-white tabular-nums">{ntHourDecimal.toFixed(2)}</div>
+         <div className="flex-1 bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-3 text-center shadow-sm">
+            <div className="text-[10px] font-bold mb-1 flex items-center justify-center gap-1 text-gray-500 dark:text-gray-400 uppercase tracking-wider"><Hourglass size={10}/> NewTask Hour</div>
+            <div className="text-2xl font-bold text-gray-800 dark:text-white tabular-nums">{ntHourDecimal.toFixed(2)}</div>
          </div>
       </div>
 
-      {/* Justify Around for OT Row */}
-      <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-4 flex items-center justify-around shadow-sm">
+      {/* New OT Section Layout */}
+      <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-3 flex items-center justify-between shadow-sm gap-4 shrink-0">
          <input 
             type="number" 
-            placeholder="Enter General Hour" 
+            placeholder="General Hour" 
             value={otInput} 
             onChange={(e) => {
                 const val = parseFloat(e.target.value);
                 if (val >= 0 || e.target.value === '') setOtInput(e.target.value);
             }} 
-            className="w-48 bg-white/60 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-full px-6 py-2 text-center outline-none focus:ring-2 focus:ring-blue-400/50 no-spinner font-medium text-lg placeholder:text-sm placeholder:font-normal placeholder:text-gray-400" 
+            className="w-[140px] bg-white/60 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-center outline-none focus:ring-2 focus:ring-blue-400/50 no-spinner font-medium text-base placeholder:text-xs placeholder:font-normal placeholder:text-gray-400" 
          />
-         <div className="font-bold text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap flex items-center gap-2">
-             OT HOUR
-             <span className="text-blue-600 dark:text-blue-400 text-2xl tabular-nums">{otHourValue.toFixed(2)}</span>
+         
+         <div className="flex-1 flex flex-col items-center justify-center leading-tight">
+             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">OT Hour</span>
+             <span className="text-blue-600 dark:text-blue-400 text-2xl font-bold tabular-nums">{otHourValue.toFixed(2)}</span>
          </div>
+
+         <button 
+            onClick={handleCopyOT}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95"
+         >
+            {otCopied ? <Check size={16}/> : <Copy size={16}/>}
+            {otCopied ? 'Copied' : 'Copy OT'}
+         </button>
       </div>
 
-      {/* Toggles: Reduced Height & Spacing */}
-      <div className="grid grid-cols-2 gap-2 flex-1 overflow-y-auto custom-scrollbar p-1">
+      {/* Toggles: Reduced Height & Spacing, 2 Columns */}
+      <div className="grid grid-cols-2 gap-x-3 gap-y-2 flex-1 overflow-y-auto custom-scrollbar p-1 content-start">
          {toggles.map(item => (
-            <div key={item.id} className="group flex justify-between items-center px-3 py-1 rounded-xl border border-transparent bg-white/40 dark:bg-white/5 hover:border-white/30 transition-all shadow-sm h-10">
+            <div 
+               key={item.id} 
+               className={`group flex justify-between items-center px-3 rounded-xl border transition-all shadow-sm h-9 
+                  ${item.checked 
+                     ? 'bg-green-100/80 border-green-200 dark:bg-green-900/40 dark:border-green-500/30' 
+                     : 'bg-white/40 border-transparent dark:bg-white/5 hover:border-white/30'
+                  }
+               `}
+            >
                <div className="flex items-center gap-2 flex-1 min-w-0">
                    <button onClick={() => handleEditToggle(item.id)} className="text-gray-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
                        {item.editing ? <Check size={12} className="text-green-500"/> : <Edit2 size={12}/>}
@@ -205,12 +245,12 @@ export default function UpdatesApp({
                        <input 
                           value={item.label}
                           onChange={(e) => handleLabelChange(item.id, e.target.value)}
-                          className="bg-transparent border-b border-blue-500 outline-none w-full text-xs font-medium"
+                          className="bg-transparent border-b border-blue-500 outline-none w-full text-xs font-medium text-gray-800 dark:text-white"
                           autoFocus
                           onKeyDown={e => e.key === 'Enter' && handleEditToggle(item.id)}
                        />
                    ) : (
-                       <span className="text-xs font-medium text-gray-700 dark:text-gray-200 truncate select-none" title={item.label}>{item.label}</span>
+                       <span className={`text-xs font-medium truncate select-none ${item.checked ? 'text-green-800 dark:text-green-200 font-bold' : 'text-gray-700 dark:text-gray-200'}`} title={item.label}>{item.label}</span>
                    )}
                </div>
                <div onClick={() => handleToggleCheck(item.id)} className={`cursor-pointer w-8 h-4 rounded-full p-0.5 flex items-center shadow-inner transition-colors duration-300 ${item.checked ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}>
@@ -220,8 +260,8 @@ export default function UpdatesApp({
          ))}
       </div>
 
-      <div className="relative">
-        <div onClick={handleCopy} className={`bg-white/60 dark:bg-black/40 border border-white/30 dark:border-white/10 rounded-2xl p-4 text-center transition-all duration-300 shadow-sm shrink-0 min-h-[80px] flex flex-col justify-center items-center ${isCopyable ? 'cursor-pointer hover:bg-white/80 dark:hover:bg-white/10' : 'cursor-not-allowed opacity-70'} ${copied ? 'bg-green-100/80 dark:bg-green-900/30 border-green-500/50 scale-[1.02]' : ''}`}>
+      <div className="relative shrink-0">
+        <div onClick={handleCopy} className={`bg-white/60 dark:bg-black/40 border border-white/30 dark:border-white/10 rounded-2xl p-4 text-center transition-all duration-300 shadow-sm min-h-[80px] flex flex-col justify-center items-center ${isCopyable ? 'cursor-pointer hover:bg-white/80 dark:hover:bg-white/10' : 'cursor-not-allowed opacity-70'} ${copied ? 'bg-green-100/80 dark:bg-green-900/30 border-green-500/50 scale-[1.02]' : ''}`}>
             <div className="font-medium text-sm text-gray-800 dark:text-gray-200 break-words leading-relaxed select-none w-full">
                 {displayText}
             </div>
@@ -235,7 +275,8 @@ export default function UpdatesApp({
         </AnimatePresence>
       </div>
 
-      <ConfirmModal isOpen={resetConfirmOpen} onClose={() => setResetConfirmOpen(false)} onConfirm={onGlobalReset} message="Reset ALL daily progress across Dashboard (Entries, Links, Updates)?" />
+      <ConfirmModal isOpen={resetConfirmOpen} onClose={() => setResetConfirmOpen(false)} onConfirm={onGlobalReset} message="Reset ALL data (Entries, Links, Updates)?" />
     </div>
   );
+}
 }
