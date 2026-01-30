@@ -155,7 +155,7 @@ export default function DashboardPage() {
   const [activeApp, setActiveApp] = useState<string | null>('newtask');
   const [isClient, setIsClient] = useState(false);
   
-  // --- SHARED STATE ---
+  // --- SHARED STATE (LIFTED & PERSISTENT) ---
   const [totalSentLinks, setTotalSentLinks] = useState(0);
   const [entriesCounts, setEntriesCounts] = useState<Record<string, number>>({
     cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0
@@ -167,11 +167,26 @@ export default function DashboardPage() {
   const generalSW = useStopwatch('general');
   const newTaskSW = useStopwatch('newtask');
 
+  // Load Persistence
   useEffect(() => {
       setIsClient(true);
       const savedBubbles = localStorage.getItem('show_stopwatch_bubbles');
+      const savedLinks = localStorage.getItem('global_total_sent_links');
+      const savedEntries = localStorage.getItem('global_entries_counts');
+
       if (savedBubbles) setShowBubbles(JSON.parse(savedBubbles));
+      if (savedLinks) setTotalSentLinks(JSON.parse(savedLinks));
+      if (savedEntries) setEntriesCounts(JSON.parse(savedEntries));
   }, []);
+
+  // Save Persistence
+  useEffect(() => {
+      if (isClient) localStorage.setItem('global_total_sent_links', JSON.stringify(totalSentLinks));
+  }, [totalSentLinks, isClient]);
+
+  useEffect(() => {
+      if (isClient) localStorage.setItem('global_entries_counts', JSON.stringify(entriesCounts));
+  }, [entriesCounts, isClient]);
 
   const toggleBubbles = () => {
       const newState = !showBubbles;
@@ -179,10 +194,21 @@ export default function DashboardPage() {
       localStorage.setItem('show_stopwatch_bubbles', JSON.stringify(newState));
   };
 
+  // --- GLOBAL RESET ---
   const handleGlobalReset = () => {
+      // 1. Reset State
       setTotalSentLinks(0);
       setEntriesCounts({ cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0 });
-      setResetSignal(prev => prev + 1); // Triggers children to clear their logs
+      
+      // 2. Clear Persistence
+      localStorage.removeItem('global_total_sent_links');
+      localStorage.removeItem('global_entries_counts');
+      localStorage.removeItem('dailyEntryLogs'); // Clear local logs in Entries App
+      localStorage.removeItem('newTaskEmails'); // Clear emails? (Optional, based on "All Daily Progress") - keeping emails might be safer, but resetting "Self Page" usually means numbers.
+      // Note: Components listen to resetSignal to clear their specific internal logs/inputs
+      
+      // 3. Trigger Children
+      setResetSignal(prev => prev + 1); 
   };
 
   const formatTime = (ms: number) => {
@@ -192,7 +218,14 @@ export default function DashboardPage() {
     return `${h.toString().padStart(2, '0')}:${(m % 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
   };
 
-  // UPDATED: 'updates' color to #A80038
+  // Helper for Updates Page (Hours + Min only, no seconds)
+  const getHourDecimal = (ms: number) => {
+      const totalMinutes = Math.floor(ms / 60000); // Ignore seconds completely
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      return hours + (minutes / 60);
+  };
+
   const menuItems = [
     { id: 'newtask', icon: CheckSquare, label: 'NewTask Updates', color: 'text-blue-500', bgColor: 'bg-blue-500' },
     { id: 'entries', icon: Table, label: 'Daily Entry Counts', color: 'text-green-500', bgColor: 'bg-green-500' },
@@ -251,7 +284,17 @@ export default function DashboardPage() {
                      {activeApp === 'newtask' && <NewTaskApp onClose={handleClose} totalSentLinks={totalSentLinks} setTotalSentLinks={setTotalSentLinks} resetSignal={resetSignal} />}
                      {activeApp === 'entries' && <EntriesApp onClose={handleClose} counts={entriesCounts} setCounts={setEntriesCounts} resetSignal={resetSignal} />}
                      {activeApp === 'tracker' && <TrackerApp onClose={handleClose} generalSW={generalSW} newTaskSW={newTaskSW} formatTime={formatTime} showBubbles={showBubbles} toggleBubbles={toggleBubbles} />}
-                     {activeApp === 'updates' && <UpdatesApp onClose={handleClose} totalSentLinks={totalSentLinks} entriesCounts={entriesCounts} generalElapsed={generalSW.elapsed} newTaskElapsed={newTaskSW.elapsed} onGlobalReset={handleGlobalReset} />}
+                     {activeApp === 'updates' && (
+                       <UpdatesApp 
+                         onClose={handleClose} 
+                         totalSentLinks={totalSentLinks} 
+                         entriesCounts={entriesCounts} 
+                         mainHourDecimal={getHourDecimal(generalSW.elapsed)} // Pass pre-calculated decimal
+                         ntHourDecimal={getHourDecimal(newTaskSW.elapsed)}   // Pass pre-calculated decimal
+                         onGlobalReset={handleGlobalReset} 
+                         resetSignal={resetSignal}
+                       />
+                     )}
                      {activeApp === 'snacks' && <SnacksApp onClose={handleClose} />}
                   </motion.div>
                 ) : (
