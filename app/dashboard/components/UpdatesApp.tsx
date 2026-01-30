@@ -1,7 +1,7 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
-import { X, RotateCcw, Copy, Hourglass, Edit2, Check } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { X, RotateCcw, Hourglass, Edit2, Check } from "lucide-react";
+import { motion } from "framer-motion";
 
 // --- TYPES ---
 interface UpdatesAppProps {
@@ -36,8 +36,6 @@ export default function UpdatesApp({
   // Local State
   const [otInput, setOtInput] = useState<string>('');
   const [copied, setCopied] = useState(false);
-  
-  // Toggles State with Persistence
   const [toggles, setToggles] = useState<ToggleItem[]>([]);
 
   // Derived Values
@@ -45,7 +43,6 @@ export default function UpdatesApp({
   const ntHour = newTaskElapsed / 3600000;
   const otHour = Math.max(0, mainHour - (parseFloat(otInput) || 0));
   
-  // Entries Labels (Must match EntriesApp keys)
   const LABELS: Record<string, string> = {
     cat1: 'LA', cat2: 'FC', cat3: 'FL', cat4: 'Others', cat5: 'Chk Name', cat6: 'Urgent Task'
   };
@@ -128,7 +125,7 @@ export default function UpdatesApp({
          <CloseButton onClick={onClose} />
       </div>
 
-      {/* 2. Top Stats Bar */}
+      {/* 2. Top Stats Bar with Reset */}
       <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-4 flex justify-between items-center text-sm font-bold shadow-sm backdrop-blur-md shrink-0">
          <div className="flex items-center gap-2">
             <span className="text-gray-600 dark:text-gray-300">Total Sent Links:</span> 
@@ -141,8 +138,8 @@ export default function UpdatesApp({
          </div>
          <div className="h-4 w-px bg-gray-300 dark:bg-white/10"></div>
          <button 
-            onClick={onGlobalReset}
-            className="flex items-center gap-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1.5 rounded-lg transition-colors"
+            onClick={() => { if(confirm('Reset ALL daily progress across Dashboard?')) onGlobalReset() }}
+            className="flex items-center gap-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1.5 rounded-lg transition-colors border border-red-500/20"
          >
             <RotateCcw size={14}/> Reset
          </button>
@@ -184,7 +181,6 @@ export default function UpdatesApp({
             <div key={item.id} className="group flex justify-between items-center p-3 rounded-xl border border-transparent bg-white/40 dark:bg-white/5 hover:border-white/30 transition-all shadow-sm">
                
                <div className="flex items-center gap-2 flex-1 min-w-0">
-                   {/* Edit Button (Hover) */}
                    <button onClick={() => handleEditToggle(item.id)} className="text-gray-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
                        {item.editing ? <Check size={14} className="text-green-500"/> : <Edit2 size={14}/>}
                    </button>
@@ -202,7 +198,6 @@ export default function UpdatesApp({
                    )}
                </div>
 
-               {/* Toggle Switch */}
                <div onClick={() => handleToggleCheck(item.id)} className={`cursor-pointer w-10 h-5 rounded-full p-0.5 flex items-center shadow-inner transition-colors duration-300 ${item.checked ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}>
                   <motion.div 
                     initial={false}
@@ -219,7 +214,7 @@ export default function UpdatesApp({
       <div 
         onClick={handleCopy}
         className={`bg-white/60 dark:bg-black/40 border border-white/30 dark:border-white/10 rounded-2xl p-4 text-center cursor-pointer transition-all duration-300 shadow-sm shrink-0
-            ${copied ? 'bg-green-100/80 dark:bg-green-900/30 scale-[1.02]' : 'hover:bg-white/80 dark:hover:bg-white/10'}
+            ${copied ? 'bg-green-100/80 dark:bg-green-900/30 border-green-500/50 scale-[1.02]' : 'hover:bg-white/80 dark:hover:bg-white/10'}
         `}
       >
          <div className="font-medium text-sm text-gray-800 dark:text-gray-200 break-words leading-relaxed select-none">
