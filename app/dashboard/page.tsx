@@ -155,15 +155,13 @@ export default function DashboardPage() {
   const [activeApp, setActiveApp] = useState<string | null>('newtask');
   const [isClient, setIsClient] = useState(false);
   
-  // --- SHARED STATE (LIFTED) ---
+  // --- SHARED STATE ---
   const [totalSentLinks, setTotalSentLinks] = useState(0);
   const [entriesCounts, setEntriesCounts] = useState<Record<string, number>>({
     cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0
   });
 
   const [showBubbles, setShowBubbles] = useState(false);
-  
-  // Global Reset Signal (Increment to trigger children cleanup)
   const [resetSignal, setResetSignal] = useState(0);
 
   const generalSW = useStopwatch('general');
@@ -184,7 +182,7 @@ export default function DashboardPage() {
   const handleGlobalReset = () => {
       setTotalSentLinks(0);
       setEntriesCounts({ cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0 });
-      setResetSignal(prev => prev + 1); // Trigger children to clear their logs
+      setResetSignal(prev => prev + 1); // Triggers children to clear their logs
   };
 
   const formatTime = (ms: number) => {
@@ -194,11 +192,12 @@ export default function DashboardPage() {
     return `${h.toString().padStart(2, '0')}:${(m % 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
   };
 
+  // UPDATED: 'updates' color to #A80038
   const menuItems = [
     { id: 'newtask', icon: CheckSquare, label: 'NewTask Updates', color: 'text-blue-500', bgColor: 'bg-blue-500' },
     { id: 'entries', icon: Table, label: 'Daily Entry Counts', color: 'text-green-500', bgColor: 'bg-green-500' },
     { id: 'tracker', icon: Clock, label: 'Tracker', color: 'text-orange-500', bgColor: 'bg-orange-500' },
-    { id: 'updates', icon: Zap, label: 'Updates', color: 'text-yellow-500', bgColor: 'bg-yellow-500' },
+    { id: 'updates', icon: Zap, label: 'Updates', color: 'text-[#A80038]', bgColor: 'bg-[#A80038]' },
     { id: 'snacks', icon: Coffee, label: 'Food & Beverage', color: 'text-pink-500', bgColor: 'bg-pink-500' },
   ];
 
@@ -249,42 +248,10 @@ export default function DashboardPage() {
               <AnimatePresence mode="wait">
                 {activeApp ? (
                   <motion.div key={activeApp} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }} transition={{ duration: 0.2 }} className="h-full w-full flex flex-col p-6 pt-6">
-                     {activeApp === 'newtask' && (
-                       <NewTaskApp 
-                         onClose={handleClose} 
-                         totalSentLinks={totalSentLinks} 
-                         setTotalSentLinks={setTotalSentLinks} 
-                         resetSignal={resetSignal} // Pass Reset Signal
-                       />
-                     )}
-                     {activeApp === 'entries' && (
-                       <EntriesApp 
-                         onClose={handleClose} 
-                         counts={entriesCounts} // Pass Shared State
-                         setCounts={setEntriesCounts} 
-                         resetSignal={resetSignal} // Pass Reset Signal
-                       />
-                     )}
-                     {activeApp === 'tracker' && (
-                       <TrackerApp 
-                         onClose={handleClose} 
-                         generalSW={generalSW} 
-                         newTaskSW={newTaskSW} 
-                         formatTime={formatTime} 
-                         showBubbles={showBubbles} 
-                         toggleBubbles={toggleBubbles} 
-                       />
-                     )}
-                     {activeApp === 'updates' && (
-                       <UpdatesApp 
-                         onClose={handleClose} 
-                         totalSentLinks={totalSentLinks}
-                         entriesCounts={entriesCounts} // Pass Shared State
-                         generalElapsed={generalSW.elapsed}
-                         newTaskElapsed={newTaskSW.elapsed}
-                         onGlobalReset={handleGlobalReset} // Pass Reset Handler
-                       />
-                     )}
+                     {activeApp === 'newtask' && <NewTaskApp onClose={handleClose} totalSentLinks={totalSentLinks} setTotalSentLinks={setTotalSentLinks} resetSignal={resetSignal} />}
+                     {activeApp === 'entries' && <EntriesApp onClose={handleClose} counts={entriesCounts} setCounts={setEntriesCounts} resetSignal={resetSignal} />}
+                     {activeApp === 'tracker' && <TrackerApp onClose={handleClose} generalSW={generalSW} newTaskSW={newTaskSW} formatTime={formatTime} showBubbles={showBubbles} toggleBubbles={toggleBubbles} />}
+                     {activeApp === 'updates' && <UpdatesApp onClose={handleClose} totalSentLinks={totalSentLinks} entriesCounts={entriesCounts} generalElapsed={generalSW.elapsed} newTaskElapsed={newTaskSW.elapsed} onGlobalReset={handleGlobalReset} />}
                      {activeApp === 'snacks' && <SnacksApp onClose={handleClose} />}
                   </motion.div>
                 ) : (
