@@ -148,10 +148,42 @@ const MiniStopwatch = ({
   );
 };
 
+// --- DIGITAL CLOCK COMPONENT ---
+const DigitalClock = () => {
+    const [time, setTime] = useState<string>("");
+    const [date, setDate] = useState<string>("");
+
+    useEffect(() => {
+        const update = () => {
+            const now = new Date();
+            // Time: 09:42:18
+            setTime(now.toLocaleTimeString('en-GB', { hour12: false }));
+            // Date: 30-January-2026, Friday
+            const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+            const dayStr = now.toLocaleDateString('en-GB', { weekday: 'long' });
+            setDate(`${dateStr}, ${dayStr}`);
+        };
+        update();
+        const interval = setInterval(update, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <div className="flex flex-col items-center justify-center gap-4 text-center">
+             <div className="text-8xl font-mono font-bold text-gray-800 dark:text-white tracking-widest tabular-nums select-none drop-shadow-sm">
+                {time || "--:--:--"}
+             </div>
+             <div className="text-2xl font-medium text-gray-500 dark:text-gray-400">
+                {date || "Loading Date..."}
+             </div>
+        </div>
+    );
+};
+
 export default function DashboardPage() {
   const { theme, setTheme } = useTheme();
   
-  const [activeApp, setActiveApp] = useState<string | null>('newtask');
+  const [activeApp, setActiveApp] = useState<string | null>(null); // Default: null (Dashboard)
   const [isClient, setIsClient] = useState(false);
   
   const [totalSentLinks, setTotalSentLinks] = useState(0);
@@ -181,8 +213,9 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (isClient && activeApp) {
-      localStorage.setItem('dashboard_active_app', activeApp);
+    if (isClient) {
+        if(activeApp) localStorage.setItem('dashboard_active_app', activeApp);
+        else localStorage.removeItem('dashboard_active_app');
     }
   }, [activeApp, isClient]);
 
@@ -272,7 +305,8 @@ export default function DashboardPage() {
                {activeApp ? menuItems.find(i => i.id === activeApp)?.label : "Dashboard"}
             </h1>
             <div className="flex items-center gap-6">
-               <div className="relative w-20 h-20 drop-shadow-2xl">
+               {/* Increased Logo Size */}
+               <div className="relative w-28 h-28 drop-shadow-2xl">
                   <Image src="https://iili.io/FC3KC6g.png" alt="Logo" fill className="object-contain" priority />
                </div>
                <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="p-3 rounded-full bg-white/20 dark:bg-white/5 hover:bg-white/40 transition-colors text-gray-800 dark:text-white">
@@ -295,9 +329,10 @@ export default function DashboardPage() {
                      {activeApp === 'snacks' && <SnacksApp onClose={handleClose} />}
                   </motion.div>
                 ) : (
-                  <div className="h-full w-full flex flex-col items-center justify-center text-center p-8 opacity-30">
-                     <div className="w-32 h-32 relative mb-4 grayscale opacity-50"><Image src="https://iili.io/FC3KC6g.png" fill className="object-contain" alt="Logo" priority /></div>
-                     <p className="text-gray-800 dark:text-white font-light">Select an application from the sidebar</p>
+                  <div className="h-full w-full flex flex-col items-center justify-center text-center p-8">
+                     {/* Default Dashboard Content: Clock */}
+                     <DigitalClock />
+                     <p className="mt-8 text-gray-500 dark:text-gray-400 font-light text-sm">Select an application from the sidebar to begin.</p>
                   </div>
                 )}
               </AnimatePresence>
