@@ -169,12 +169,12 @@ const DigitalClock = () => {
     }, []);
 
     return (
-        <div className="flex flex-col items-center justify-center gap-4 text-center">
-             <div className="text-8xl font-mono font-bold text-gray-800 dark:text-white tracking-widest tabular-nums select-none drop-shadow-sm">
+        <div className="flex flex-col items-center justify-center gap-4 text-center animate-fade-in">
+             <div className="text-6xl md:text-8xl font-mono font-bold text-gray-800 dark:text-white tracking-widest tabular-nums select-none drop-shadow-sm">
                 {time || "--:--:--"}
              </div>
-             <div className="text-2xl font-medium text-gray-500 dark:text-gray-400">
-                {date || "Loading Date..."}
+             <div className="text-xl md:text-3xl font-medium text-gray-500 dark:text-gray-400">
+                {date || "Loading..."}
              </div>
         </div>
     );
@@ -183,7 +183,7 @@ const DigitalClock = () => {
 export default function DashboardPage() {
   const { theme, setTheme } = useTheme();
   
-  const [activeApp, setActiveApp] = useState<string | null>(null); // Default: null (Dashboard)
+  const [activeApp, setActiveApp] = useState<string | null>(null); // Default: null (Dashboard Clock)
   const [isClient, setIsClient] = useState(false);
   
   const [totalSentLinks, setTotalSentLinks] = useState(0);
@@ -263,12 +263,18 @@ export default function DashboardPage() {
       return hours + (minutes / 60);
   };
 
+  // --- UPDATED MENU COLORS ---
   const menuItems = [
-    { id: 'newtask', icon: CheckSquare, label: 'NewTask Updates', color: 'text-blue-500', bgColor: 'bg-blue-500' },
+    // Discord Color #5865F2
+    { id: 'newtask', icon: CheckSquare, label: 'NewTask Updates', color: 'text-[#5865F2]', bgColor: 'bg-[#5865F2]' },
+    // Green (Unchanged)
     { id: 'entries', icon: Table, label: 'Daily Entry Counts', color: 'text-green-500', bgColor: 'bg-green-500' },
+    // Orange (Unchanged)
     { id: 'tracker', icon: Clock, label: 'Tracker', color: 'text-orange-500', bgColor: 'bg-orange-500' },
+    // ELab Red #A80038
     { id: 'updates', icon: Zap, label: 'Updates', color: 'text-[#A80038]', bgColor: 'bg-[#A80038]' },
-    { id: 'snacks', icon: Coffee, label: 'Food & Beverage', color: 'text-pink-500', bgColor: 'bg-pink-500' },
+    // Coffee Color #6F4E37
+    { id: 'snacks', icon: Coffee, label: 'Food & Beverage', color: 'text-[#6F4E37]', bgColor: 'bg-[#6F4E37]' },
   ];
 
   const handleClose = () => {
@@ -301,11 +307,11 @@ export default function DashboardPage() {
         <motion.div layout className="relative z-10 w-full max-w-[950px] h-[95vh] max-h-[850px] bg-white/40 dark:bg-black/40 backdrop-blur-2xl border border-white/50 dark:border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-2xl">
           
           <div className="flex items-center justify-between px-6 pt-4 pb-0 shrink-0 select-none">
+            {/* UPDATED HEADING */}
             <h1 className="text-xl font-bold tracking-tight text-gray-800 dark:text-white opacity-90 ml-2">
-               {activeApp ? menuItems.find(i => i.id === activeApp)?.label : "Dashboard"}
+               {activeApp ? menuItems.find(i => i.id === activeApp)?.label : "EntryLab Dashboard"}
             </h1>
             <div className="flex items-center gap-6">
-               {/* Increased Logo Size */}
                <div className="relative w-28 h-28 drop-shadow-2xl">
                   <Image src="https://iili.io/FC3KC6g.png" alt="Logo" fill className="object-contain" priority />
                </div>
@@ -330,7 +336,6 @@ export default function DashboardPage() {
                   </motion.div>
                 ) : (
                   <div className="h-full w-full flex flex-col items-center justify-center text-center p-8">
-                     {/* Default Dashboard Content: Clock */}
                      <DigitalClock />
                      <p className="mt-8 text-gray-500 dark:text-gray-400 font-light text-sm">Select an application from the sidebar to begin.</p>
                   </div>
