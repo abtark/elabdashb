@@ -16,7 +16,6 @@ import TrackerApp from "./components/TrackerApp";
 import UpdatesApp from "./components/UpdatesApp";
 import SnacksApp from "./components/SnacksApp";
 
-// --- GLOBAL STOPWATCH HOOK ---
 const useStopwatch = (id: string) => {
   const [state, setState] = useState({
     startTime: 0,
@@ -97,7 +96,6 @@ const useStopwatch = (id: string) => {
   return { ...state, start, pause, reset, lap, deleteLap };
 };
 
-// --- MINI BUBBLE COMPONENT ---
 const MiniStopwatch = ({ 
   label, time, isRunning, onToggle, bottomOffset, visible
 }: { 
@@ -152,10 +150,10 @@ const MiniStopwatch = ({
 
 export default function DashboardPage() {
   const { theme, setTheme } = useTheme();
+  
   const [activeApp, setActiveApp] = useState<string | null>('newtask');
   const [isClient, setIsClient] = useState(false);
   
-  // --- SHARED STATE ---
   const [totalSentLinks, setTotalSentLinks] = useState(0);
   const [entriesCounts, setEntriesCounts] = useState<Record<string, number>>({
     cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0
@@ -167,9 +165,12 @@ export default function DashboardPage() {
   const generalSW = useStopwatch('general');
   const newTaskSW = useStopwatch('newtask');
 
-  // Load Persistence
   useEffect(() => {
       setIsClient(true);
+      
+      const savedApp = localStorage.getItem('dashboard_active_app');
+      if (savedApp) setActiveApp(savedApp);
+
       const savedBubbles = localStorage.getItem('show_stopwatch_bubbles');
       const savedLinks = localStorage.getItem('global_total_sent_links');
       const savedEntries = localStorage.getItem('global_entries_counts');
@@ -179,7 +180,12 @@ export default function DashboardPage() {
       if (savedEntries) setEntriesCounts(JSON.parse(savedEntries));
   }, []);
 
-  // Save Persistence
+  useEffect(() => {
+    if (isClient && activeApp) {
+      localStorage.setItem('dashboard_active_app', activeApp);
+    }
+  }, [activeApp, isClient]);
+
   useEffect(() => {
       if (isClient) localStorage.setItem('global_total_sent_links', JSON.stringify(totalSentLinks));
   }, [totalSentLinks, isClient]);
@@ -194,23 +200,19 @@ export default function DashboardPage() {
       localStorage.setItem('show_stopwatch_bubbles', JSON.stringify(newState));
   };
 
-  // --- GLOBAL RESET ---
   const handleGlobalReset = () => {
-      // 1. Reset State
-      // NOTE: Removed setTotalSentLinks(0) to keep Office data intact as requested
+      setTotalSentLinks(0);
       setEntriesCounts({ cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0 });
       
-      // 2. Reset Stopwatches (Added General Stopwatch Reset)
       generalSW.reset();
       newTaskSW.reset(); 
 
-      // 3. Clear Persistence
-      // NOTE: Removed 'global_total_sent_links' removal to keep Office data
+      localStorage.removeItem('global_total_sent_links');
       localStorage.removeItem('global_entries_counts');
       localStorage.removeItem('dailyEntryLogs');
       localStorage.removeItem('dailyEntryCounts');
+      localStorage.removeItem('nt_self_sent_links_logs'); 
       
-      // 4. Trigger Children Cleanups
       setResetSignal(prev => prev + 1); 
   };
 
@@ -236,7 +238,10 @@ export default function DashboardPage() {
     { id: 'snacks', icon: Coffee, label: 'Food & Beverage', color: 'text-pink-500', bgColor: 'bg-pink-500' },
   ];
 
-  const handleClose = () => setActiveApp(null);
+  const handleClose = () => {
+    setActiveApp(null);
+    localStorage.removeItem('dashboard_active_app'); 
+  };
 
   if (!isClient) return null;
 
