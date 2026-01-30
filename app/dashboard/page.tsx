@@ -203,10 +203,11 @@ export default function DashboardPage() {
       // 2. Reset NewTask Stopwatch
       newTaskSW.reset(); 
 
-      // 3. Clear Persistence (BUT KEEP EMAILS)
+      // 3. Clear Persistence
       localStorage.removeItem('global_total_sent_links');
       localStorage.removeItem('global_entries_counts');
       localStorage.removeItem('dailyEntryLogs');
+      localStorage.removeItem('dailyEntryCounts'); // <--- CRITICAL FIX: Also clear the child's local storage
       
       // 4. Trigger Children Cleanups
       setResetSignal(prev => prev + 1); 
