@@ -197,34 +197,34 @@ export default function UpdatesApp({
          </div>
       </div>
 
-      {/* New OT Section Layout */}
+      {/* FIXED OT Section Layout: Side-by-Side & No Jitter */}
       <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-3 flex items-center justify-between shadow-sm gap-4 shrink-0">
          <input 
             type="number" 
-            placeholder="General Hour" 
+            placeholder="Enter General Hour" 
             value={otInput} 
             onChange={(e) => {
                 const val = parseFloat(e.target.value);
                 if (val >= 0 || e.target.value === '') setOtInput(e.target.value);
             }} 
-            className="w-[140px] bg-white/60 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-center outline-none focus:ring-2 focus:ring-blue-400/50 no-spinner font-medium text-base placeholder:text-xs placeholder:font-normal placeholder:text-gray-400" 
+            className="w-48 bg-white/60 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-center outline-none focus:ring-2 focus:ring-blue-400/50 no-spinner font-medium text-lg placeholder:text-sm placeholder:font-normal placeholder:text-gray-400" 
          />
          
-         <div className="flex-1 flex flex-col items-center justify-center leading-tight">
-             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">OT Hour</span>
-             <span className="text-blue-600 dark:text-blue-400 text-2xl font-bold tabular-nums">{otHourValue.toFixed(2)}</span>
+         {/* Fixed width container to prevent jitter */}
+         <div className="flex-1 flex items-center justify-center gap-2 min-w-[140px]">
+             <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">OT Hour:</span>
+             <span className="text-blue-600 dark:text-blue-400 text-2xl font-bold tabular-nums min-w-[60px] text-left">{otHourValue.toFixed(2)}</span>
          </div>
 
          <button 
             onClick={handleCopyOT}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95"
+            className="w-32 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95 shrink-0"
          >
             {otCopied ? <Check size={16}/> : <Copy size={16}/>}
             {otCopied ? 'Copied' : 'Copy OT'}
          </button>
       </div>
 
-      {/* Toggles: Reduced Height & Spacing, 2 Columns */}
       <div className="grid grid-cols-2 gap-x-3 gap-y-2 flex-1 overflow-y-auto custom-scrollbar p-1 content-start">
          {toggles.map(item => (
             <div 
