@@ -148,7 +148,6 @@ const MiniStopwatch = ({
   );
 };
 
-// --- DIGITAL CLOCK COMPONENT ---
 const DigitalClock = () => {
     const [time, setTime] = useState<string>("");
     const [date, setDate] = useState<string>("");
@@ -156,9 +155,7 @@ const DigitalClock = () => {
     useEffect(() => {
         const update = () => {
             const now = new Date();
-            // Time: 09:42:18
             setTime(now.toLocaleTimeString('en-GB', { hour12: false }));
-            // Date: 30-January-2026, Friday
             const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
             const dayStr = now.toLocaleDateString('en-GB', { weekday: 'long' });
             setDate(`${dateStr}, ${dayStr}`);
@@ -183,7 +180,7 @@ const DigitalClock = () => {
 export default function DashboardPage() {
   const { theme, setTheme } = useTheme();
   
-  const [activeApp, setActiveApp] = useState<string | null>(null); // Default: null (Dashboard Clock)
+  const [activeApp, setActiveApp] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   
   const [totalSentLinks, setTotalSentLinks] = useState(0);
@@ -199,14 +196,11 @@ export default function DashboardPage() {
 
   useEffect(() => {
       setIsClient(true);
-      
       const savedApp = localStorage.getItem('dashboard_active_app');
       if (savedApp) setActiveApp(savedApp);
-
       const savedBubbles = localStorage.getItem('show_stopwatch_bubbles');
       const savedLinks = localStorage.getItem('global_total_sent_links');
       const savedEntries = localStorage.getItem('global_entries_counts');
-
       if (savedBubbles) setShowBubbles(JSON.parse(savedBubbles));
       if (savedLinks) setTotalSentLinks(JSON.parse(savedLinks));
       if (savedEntries) setEntriesCounts(JSON.parse(savedEntries));
@@ -236,16 +230,13 @@ export default function DashboardPage() {
   const handleGlobalReset = () => {
       setTotalSentLinks(0);
       setEntriesCounts({ cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0 });
-      
       generalSW.reset();
       newTaskSW.reset(); 
-
       localStorage.removeItem('global_total_sent_links');
       localStorage.removeItem('global_entries_counts');
       localStorage.removeItem('dailyEntryLogs');
       localStorage.removeItem('dailyEntryCounts');
       localStorage.removeItem('nt_self_sent_links_logs'); 
-      
       setResetSignal(prev => prev + 1); 
   };
 
@@ -265,15 +256,11 @@ export default function DashboardPage() {
 
   // --- UPDATED MENU COLORS ---
   const menuItems = [
-    // Discord Color #5865F2
     { id: 'newtask', icon: CheckSquare, label: 'NewTask Updates', color: 'text-[#5865F2]', bgColor: 'bg-[#5865F2]' },
-    // Green (Unchanged)
     { id: 'entries', icon: Table, label: 'Daily Entry Counts', color: 'text-green-500', bgColor: 'bg-green-500' },
-    // Orange (Unchanged)
     { id: 'tracker', icon: Clock, label: 'Tracker', color: 'text-orange-500', bgColor: 'bg-orange-500' },
-    // ELab Red #A80038
-    { id: 'updates', icon: Zap, label: 'Updates', color: 'text-[#A80038]', bgColor: 'bg-[#A80038]' },
-    // Coffee Color #6F4E37
+    // Updated Updates Color: #18B0FE
+    { id: 'updates', icon: Zap, label: 'Updates', color: 'text-[#18B0FE]', bgColor: 'bg-[#18B0FE]' },
     { id: 'snacks', icon: Coffee, label: 'Food & Beverage', color: 'text-[#6F4E37]', bgColor: 'bg-[#6F4E37]' },
   ];
 
@@ -307,7 +294,6 @@ export default function DashboardPage() {
         <motion.div layout className="relative z-10 w-full max-w-[950px] h-[95vh] max-h-[850px] bg-white/40 dark:bg-black/40 backdrop-blur-2xl border border-white/50 dark:border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-2xl">
           
           <div className="flex items-center justify-between px-6 pt-4 pb-0 shrink-0 select-none">
-            {/* UPDATED HEADING */}
             <h1 className="text-xl font-bold tracking-tight text-gray-800 dark:text-white opacity-90 ml-2">
                {activeApp ? menuItems.find(i => i.id === activeApp)?.label : "EntryLab Dashboard"}
             </h1>
