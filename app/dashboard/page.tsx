@@ -6,10 +6,9 @@ import { useTheme } from "next-themes";
 import Image from "next/image";
 import { 
   CheckSquare, Table, Clock, Zap, Coffee, Sun, Moon, 
-  Play, Pause, X 
+  Play, Pause 
 } from "lucide-react";
 
-// Import components
 import Sidebar from "./components/Sidebar";
 import NewTaskApp from "./components/NewTaskApp";
 import EntriesApp from "./components/EntriesApp";
@@ -84,14 +83,19 @@ const useStopwatch = (id: string) => {
   };
 
   const lap = () => {
-    const currentTotal = state.isRunning 
-        ? state.elapsed + (Date.now() - state.startTime) // Calculate exact moment if running
-        : state.elapsed;
-    
+    // Current total time IS the lap time snapshot
+    const currentTotal = state.elapsed + (state.isRunning ? (Date.now() - state.startTime) - state.elapsed : 0);
     setState(prev => ({ ...prev, laps: [currentTotal, ...prev.laps] }));
   };
 
-  return { ...state, start, pause, reset, lap };
+  const deleteLap = (index: number) => {
+      setState(prev => {
+          const newLaps = prev.laps.filter((_, i) => i !== index);
+          return { ...prev, laps: newLaps };
+      });
+  };
+
+  return { ...state, start, pause, reset, lap, deleteLap };
 };
 
 // --- MINI BUBBLE COMPONENT ---
@@ -102,11 +106,8 @@ const MiniStopwatch = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Auto-collapse if paused
   useEffect(() => {
-    if (!isRunning) {
-        setIsExpanded(false);
-    }
+    if (!isRunning) setIsExpanded(false);
   }, [isRunning]);
 
   if (!visible) return null;
@@ -131,12 +132,10 @@ const MiniStopwatch = ({
 
       <button 
         onClick={() => { 
-            if (isRunning) onToggle(); // If running, click pauses (and effect collapses it)
+            if (isRunning) onToggle(); 
             else {
-                // If paused
-                setIsExpanded(!isExpanded); // Toggle view
-                if(!isExpanded) onToggle(); // Optional: Start on expand? User said "click on main... or mini... expand" -> usually play button starts it. 
-                // Keeping strict to: Toggle Play/Pause. Expansion logic handled by isRunning state mostly.
+                setIsExpanded(!isExpanded); 
+                if(!isExpanded) onToggle();
             }
         }}
         className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all border
@@ -157,18 +156,15 @@ export default function DashboardPage() {
   const [activeApp, setActiveApp] = useState<string | null>('newtask');
   const [isClient, setIsClient] = useState(false);
   
-  // Shared State
   const [totalSentLinks, setTotalSentLinks] = useState(0);
   const [totalDailyEntries, setTotalDailyEntries] = useState(0);
   const [showBubbles, setShowBubbles] = useState(false);
 
-  // Global Stopwatch State
   const generalSW = useStopwatch('general');
   const newTaskSW = useStopwatch('newtask');
 
   useEffect(() => {
       setIsClient(true);
-      // Load Bubble Toggle Persistence
       const savedBubbles = localStorage.getItem('show_stopwatch_bubbles');
       if (savedBubbles) setShowBubbles(JSON.parse(savedBubbles));
   }, []);
@@ -208,23 +204,8 @@ export default function DashboardPage() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(100,100,100,0.3); border-radius: 10px; }
       `}</style>
 
-      {/* Mini Stopwatches */}
-      <MiniStopwatch 
-        label="Main" 
-        time={formatTime(generalSW.elapsed)} 
-        isRunning={generalSW.isRunning} 
-        onToggle={generalSW.isRunning ? generalSW.pause : generalSW.start}
-        bottomOffset="bottom-20"
-        visible={showBubbles}
-      />
-      <MiniStopwatch 
-        label="NewTask" 
-        time={formatTime(newTaskSW.elapsed)} 
-        isRunning={newTaskSW.isRunning} 
-        onToggle={newTaskSW.isRunning ? newTaskSW.pause : newTaskSW.start}
-        bottomOffset="bottom-4"
-        visible={showBubbles}
-      />
+      <MiniStopwatch label="Main" time={formatTime(generalSW.elapsed)} isRunning={generalSW.isRunning} onToggle={generalSW.isRunning ? generalSW.pause : generalSW.start} bottomOffset="bottom-20" visible={showBubbles} />
+      <MiniStopwatch label="NewTask" time={formatTime(newTaskSW.elapsed)} isRunning={newTaskSW.isRunning} onToggle={newTaskSW.isRunning ? newTaskSW.pause : newTaskSW.start} bottomOffset="bottom-4" visible={showBubbles} />
 
       <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-gray-200 dark:bg-[#050505] transition-colors duration-500 font-ubuntu">
         
@@ -233,12 +214,8 @@ export default function DashboardPage() {
           <div className="absolute top-[40%] right-[20%] w-96 h-96 bg-cyan-500/20 dark:bg-cyan-500/30 rounded-full blur-[100px] animate-blob animation-delay-2000" />
         </div>
 
-        <motion.div 
-          layout
-          className="relative z-10 w-full max-w-[950px] h-[95vh] max-h-[850px] bg-white/40 dark:bg-black/40 backdrop-blur-2xl border border-white/50 dark:border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-2xl"
-        >
+        <motion.div layout className="relative z-10 w-full max-w-[950px] h-[95vh] max-h-[850px] bg-white/40 dark:bg-black/40 backdrop-blur-2xl border border-white/50 dark:border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-2xl">
           
-          {/* Header */}
           <div className="flex items-center justify-between px-6 pt-4 pb-0 shrink-0 select-none">
             <h1 className="text-xl font-bold tracking-tight text-gray-800 dark:text-white opacity-90 ml-2">
                {activeApp ? menuItems.find(i => i.id === activeApp)?.label : "Dashboard"}
@@ -259,54 +236,16 @@ export default function DashboardPage() {
             <div className="flex-1 relative overflow-hidden bg-white/20 dark:bg-transparent backdrop-blur-sm">
               <AnimatePresence mode="wait">
                 {activeApp ? (
-                  <motion.div 
-                    key={activeApp}
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 1.02 }}
-                    transition={{ duration: 0.2 }}
-                    className="h-full w-full flex flex-col p-6 pt-6"
-                  >
-                     {activeApp === 'newtask' && (
-                       <NewTaskApp 
-                         onClose={handleClose} 
-                         totalSentLinks={totalSentLinks} 
-                         setTotalSentLinks={setTotalSentLinks} 
-                       />
-                     )}
-                     {activeApp === 'entries' && (
-                       <EntriesApp 
-                         onClose={handleClose} 
-                         setGlobalTotal={setTotalDailyEntries} 
-                       />
-                     )}
-                     {/* Updated Props for Tracker */}
-                     {activeApp === 'tracker' && (
-                       <TrackerApp 
-                         onClose={handleClose} 
-                         generalSW={generalSW} 
-                         newTaskSW={newTaskSW} 
-                         formatTime={formatTime} 
-                         showBubbles={showBubbles}
-                         toggleBubbles={toggleBubbles}
-                       />
-                     )}
-                     {activeApp === 'updates' && (
-                       <UpdatesApp 
-                         onClose={handleClose} 
-                         totalSentLinks={totalSentLinks}
-                         totalDailyEntry={totalDailyEntries}
-                         generalElapsed={generalSW.elapsed}
-                         newTaskElapsed={newTaskSW.elapsed}
-                       />
-                     )}
+                  <motion.div key={activeApp} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }} transition={{ duration: 0.2 }} className="h-full w-full flex flex-col p-6 pt-6">
+                     {activeApp === 'newtask' && <NewTaskApp onClose={handleClose} totalSentLinks={totalSentLinks} setTotalSentLinks={setTotalSentLinks} />}
+                     {activeApp === 'entries' && <EntriesApp onClose={handleClose} setGlobalTotal={setTotalDailyEntries} />}
+                     {activeApp === 'tracker' && <TrackerApp onClose={handleClose} generalSW={generalSW} newTaskSW={newTaskSW} formatTime={formatTime} showBubbles={showBubbles} toggleBubbles={toggleBubbles} />}
+                     {activeApp === 'updates' && <UpdatesApp onClose={handleClose} totalSentLinks={totalSentLinks} totalDailyEntry={totalDailyEntries} generalElapsed={generalSW.elapsed} newTaskElapsed={newTaskSW.elapsed} />}
                      {activeApp === 'snacks' && <SnacksApp onClose={handleClose} />}
                   </motion.div>
                 ) : (
                   <div className="h-full w-full flex flex-col items-center justify-center text-center p-8 opacity-30">
-                     <div className="w-32 h-32 relative mb-4 grayscale opacity-50">
-                        <Image src="https://iili.io/FC3KC6g.png" fill className="object-contain" alt="Logo" priority />
-                     </div>
+                     <div className="w-32 h-32 relative mb-4 grayscale opacity-50"><Image src="https://iili.io/FC3KC6g.png" fill className="object-contain" alt="Logo" priority /></div>
                      <p className="text-gray-800 dark:text-white font-light">Select an application from the sidebar</p>
                   </div>
                 )}
