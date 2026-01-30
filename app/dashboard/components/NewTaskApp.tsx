@@ -19,8 +19,8 @@ interface EmailItem {
 
 interface LogItem {
   id: number;
+  value: number;
   txt: string;
-  value: number; // Storing value for deletion logic
 }
 
 // --- UTILS ---
@@ -124,14 +124,14 @@ const LinkedInSection = ({ triggerConfirm }: { triggerConfirm: (msg: string, act
 
       <div className="flex flex-nowrap items-center justify-center w-full mt-1 gap-6">
         
-        {/* WIDER INPUT: w-44 */}
-        <div className="flex items-center gap-3 w-[280px] justify-end">
+        {/* WIDER INPUT: w-48 */}
+        <div className="flex items-center gap-3 w-[290px] justify-end">
           <input 
             type="number" 
             placeholder="Total Sales Results"
             value={totalSales}
             onChange={(e) => setTotalSales(e.target.value === '' ? '' : Number(e.target.value))}
-            className="w-44 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
+            className="w-48 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
           />
           <div className="flex items-center gap-1 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
             <span className="w-20 text-right">Approx. Page:</span>
@@ -141,14 +141,14 @@ const LinkedInSection = ({ triggerConfirm }: { triggerConfirm: (msg: string, act
 
         <div className="w-px h-8 bg-gray-300 dark:bg-white/10"></div>
 
-        {/* WIDER INPUT: w-44 */}
-        <div className="flex items-center gap-3 w-[280px] justify-start">
+        {/* WIDER INPUT: w-48 */}
+        <div className="flex items-center gap-3 w-[290px] justify-start">
           <input 
             type="number" 
             placeholder="Current Sales Page"
             value={currentPage}
             onChange={(e) => setCurrentPage(e.target.value === '' ? '' : Number(e.target.value))}
-            className="w-44 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
+            className="w-48 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-3 text-center text-xs outline-none text-gray-800 dark:text-white placeholder:text-gray-400 no-spinner focus:border-blue-400 transition-colors"
           />
           <div className="flex items-center gap-1 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
              <span className="w-20 text-right">Remain Page:</span>
@@ -165,14 +165,12 @@ const SentLinksSection = ({
     total, 
     setTotal, 
     triggerConfirm, 
-    logs, 
     setLogs, 
     onOpenLogs 
 }: { 
     total: number, 
     setTotal: (n: number) => void, 
     triggerConfirm: any, 
-    logs: LogItem[],
     setLogs: React.Dispatch<React.SetStateAction<LogItem[]>>,
     onOpenLogs: () => void 
 }) => {
@@ -376,7 +374,6 @@ const OfficePage = ({ triggerConfirm }: { triggerConfirm: any }) => {
 
   const { sales, search, officeTotal } = calculateTotals();
   
-  // Independent Total (Self Page Links NOT included)
   const needed = Math.max(0, target - officeTotal);
 
   const handleInput = (type: 'sales' | 'search', index: number, val: string) => {
@@ -420,7 +417,7 @@ const OfficePage = ({ triggerConfirm }: { triggerConfirm: any }) => {
          <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 font-bold">
                <LinkIcon size={16} /> <span className="whitespace-nowrap">Total Sent Links:</span> 
-               {/* Anti-Jitter: min-w-[140px] + tabular-nums */}
+               {/* Fixed Width 140px to stop jitter */}
                <span className="bg-white dark:bg-black/20 px-8 py-1 rounded-lg border border-blue-300 min-w-[140px] text-center tabular-nums inline-block">{officeTotal.toLocaleString()}</span>
             </div>
             
@@ -483,9 +480,10 @@ interface NewTaskAppProps {
   onClose: () => void;
   totalSentLinks: number;
   setTotalSentLinks: (n: number) => void;
+  resetSignal: number;
 }
 
-export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks }: NewTaskAppProps) {
+export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks, resetSignal }: NewTaskAppProps) {
   const [activeTab, setActiveTab] = useState<'self' | 'office'>('self');
   
   // Top-Level Modal States
@@ -493,14 +491,19 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks 
   const [confirmInfo, setConfirmInfo] = useState<{isOpen: boolean, message: string, onConfirm: () => void}>({isOpen: false, message: '', onConfirm: () => {}});
   const [logModalInfo, setLogModalInfo] = useState<{isOpen: boolean, title: string, logs: LogItem[]}>({isOpen: false, title: '', logs: []});
 
-  // Local state for Sent Links Logs to manage data, but display is handled globally
+  // Local state for Sent Links Logs
   const [sentLinksLogs, setSentLinksLogs] = useState<LogItem[]>([]);
 
-  // Handlers to trigger global modals
+  // Watch Reset Signal
+  useEffect(() => {
+      if (resetSignal > 0) {
+          setSentLinksLogs([]); // Clear logs when global reset happens
+      }
+  }, [resetSignal]);
+
   const triggerAlert = (message: string) => setAlertInfo({ isOpen: true, message });
   const triggerConfirm = (message: string, onConfirm: () => void) => setConfirmInfo({ isOpen: true, message, onConfirm });
   
-  // Function passed to SentLinksSection to open global log modal
   const openLogs = () => {
       setLogModalInfo({
           isOpen: true,
@@ -509,13 +512,11 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks 
       });
   };
 
-  // Helper to delete log from global modal (needs to update local state too)
   const deleteLog = (id: number) => {
       const log = sentLinksLogs.find(l => l.id === id);
       if (log) {
           setTotalSentLinks(totalSentLinks - log.value);
           setSentLinksLogs(prev => prev.filter(l => l.id !== id));
-          // Update the open modal content live
           setLogModalInfo(prev => ({
               ...prev,
               logs: prev.logs.filter(l => l.id !== id)
@@ -529,6 +530,7 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks 
         <button onClick={() => setActiveTab('self')} className={`flex items-center gap-2 px-6 py-2 rounded-full transition-all text-sm font-medium border ${activeTab === 'self' ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-white/20 dark:bg-white/5 border-transparent hover:bg-white/40 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400'}`}>
           <User size={16} /> Self
         </button>
+        {/* Office Button: Discord Color #5865F2 */}
         <button onClick={() => setActiveTab('office')} className={`flex items-center gap-2 px-6 py-2 rounded-full transition-all text-sm font-medium border ${activeTab === 'office' ? 'bg-[#5865F2] border-[#5865F2] text-white shadow-lg shadow-[#5865F2]/20' : 'bg-white/20 dark:bg-white/5 border-transparent hover:bg-white/40 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400'}`}>
           <Building size={16} /> Office
         </button>
@@ -543,7 +545,6 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks 
                 total={totalSentLinks} 
                 setTotal={setTotalSentLinks} 
                 triggerConfirm={triggerConfirm}
-                logs={sentLinksLogs}
                 setLogs={setSentLinksLogs}
                 onOpenLogs={openLogs}
              />
@@ -555,7 +556,6 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks 
           <OfficePage triggerConfirm={triggerConfirm} />
         )}
         
-        {/* Global Modals */}
         <AlertModal 
             isOpen={alertInfo.isOpen} 
             onClose={() => setAlertInfo({isOpen: false, message: ''})} 
@@ -568,7 +568,7 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks 
             message={confirmInfo.message}
         />
         
-        {/* Global Logs Modal */}
+        {/* GLOBAL LOGS MODAL (CENTERED) */}
         <Modal 
             isOpen={logModalInfo.isOpen} 
             onClose={() => setLogModalInfo({isOpen: false, title: '', logs: []})} 
