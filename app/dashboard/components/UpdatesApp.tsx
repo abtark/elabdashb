@@ -8,9 +8,10 @@ interface UpdatesAppProps {
   onClose: () => void;
   totalSentLinks: number;
   entriesCounts: Record<string, number>;
-  generalElapsed: number;
-  newTaskElapsed: number;
+  mainHourDecimal: number;
+  ntHourDecimal: number;
   onGlobalReset: () => void;
+  resetSignal: number;
 }
 
 interface ToggleItem {
@@ -46,7 +47,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => {
 
 // --- MAIN COMPONENT ---
 export default function UpdatesApp({ 
-  onClose, totalSentLinks, entriesCounts, generalElapsed, newTaskElapsed, onGlobalReset 
+  onClose, totalSentLinks, entriesCounts, mainHourDecimal, ntHourDecimal, onGlobalReset, resetSignal 
 }: UpdatesAppProps) {
   
   // Local State
@@ -56,32 +57,51 @@ export default function UpdatesApp({
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
   // Derived Values
-  const mainHour = generalElapsed / 3600000;
-  const ntHour = newTaskElapsed / 3600000;
-  const otHourValue = Math.max(0, mainHour - (parseFloat(otInput) || 0));
+  const otHourValue = Math.max(0, mainHourDecimal - (parseFloat(otInput) || 0));
   
   const LABELS: Record<string, string> = {
     cat1: 'LA', cat2: 'FC', cat3: 'FL', cat4: 'Others', cat5: 'Chk Name', cat6: 'Urgent Task'
   };
 
-  // --- INITIALIZATION ---
+  // --- INITIALIZATION & PERSISTENCE ---
   useEffect(() => {
+      // Load Toggles
       const savedToggles = localStorage.getItem('elab_toggle_items');
       if (savedToggles) {
           setToggles(JSON.parse(savedToggles));
       } else {
+          // Default 6 items
           setToggles([
               { id: '1', label: 'File Drive & Upload', checked: false, editing: false },
               { id: '2', label: 'File Handling', checked: false, editing: false },
               { id: '3', label: 'File Download', checked: false, editing: false },
               { id: '4', label: 'File Check', checked: false, editing: false },
+              { id: '5', label: 'Other Task 1', checked: false, editing: false },
+              { id: '6', label: 'Other Task 2', checked: false, editing: false },
           ]);
       }
+
+      // Load OT Input
+      const savedOT = localStorage.getItem('elab_ot_input');
+      if (savedOT) setOtInput(savedOT);
   }, []);
 
   useEffect(() => {
       if (toggles.length > 0) localStorage.setItem('elab_toggle_items', JSON.stringify(toggles));
   }, [toggles]);
+
+  useEffect(() => {
+      localStorage.setItem('elab_ot_input', otInput);
+  }, [otInput]);
+
+  // Handle Global Reset Signal locally
+  useEffect(() => {
+      if (resetSignal > 0) {
+          setOtInput('');
+          // Optional: Reset toggles? Usually toggles might remain, but inputs clear.
+          // Let's clear OT input only as it's a daily value.
+      }
+  }, [resetSignal]);
 
   // --- HANDLERS ---
   const handleToggleCheck = (id: string) => {
@@ -106,8 +126,8 @@ export default function UpdatesApp({
       });
 
       // 2. New Task Hour
-      if (ntHour > 0) {
-          const ntStr = `NewTask ${ntHour.toFixed(2)}h` + (totalSentLinks > 0 ? ` (${totalSentLinks})` : '');
+      if (ntHourDecimal > 0) {
+          const ntStr = `NewTask ${ntHourDecimal.toFixed(2)}h` + (totalSentLinks > 0 ? ` (${totalSentLinks})` : '');
           parts.push(ntStr);
       } else if (totalSentLinks > 0) {
           parts.push(`NewTask (${totalSentLinks})`);
@@ -122,7 +142,7 @@ export default function UpdatesApp({
       return parts.join(', ');
   };
 
-  const summaryText = generateSummary(); // May be empty
+  const summaryText = generateSummary(); 
   const displayText = summaryText || "No updates available.";
   const isCopyable = summaryText.length > 0;
   
@@ -138,7 +158,7 @@ export default function UpdatesApp({
   return (
     <div className="h-full flex flex-col relative gap-4 w-full px-2 font-ubuntu">
       
-      {/* 1. Header (Red Background) */}
+      {/* 1. Header (Red Background, Icon) */}
       <div className="relative flex justify-center items-center shrink-0 min-h-[40px]">
          <div className="px-6 py-2 rounded-full bg-[#A80038] text-white font-medium text-sm shadow-lg cursor-default flex items-center gap-2">
             <Zap size={16} fill="currentColor" /> ELab Updates
@@ -170,38 +190,38 @@ export default function UpdatesApp({
       <div className="flex gap-4 w-full">
          <div className="flex-1 bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-4 text-center shadow-sm">
             <div className="text-xs font-bold mb-2 flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400 uppercase tracking-wider"><Hourglass size={12}/> Main Hour</div>
-            <div className="text-3xl font-bold text-gray-800 dark:text-white tabular-nums">{mainHour.toFixed(2)}</div>
+            <div className="text-3xl font-bold text-gray-800 dark:text-white tabular-nums">{mainHourDecimal.toFixed(2)}</div>
          </div>
          <div className="flex-1 bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-4 text-center shadow-sm">
             <div className="text-xs font-bold mb-2 flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400 uppercase tracking-wider"><Hourglass size={12}/> NewTask Hour</div>
-            <div className="text-3xl font-bold text-gray-800 dark:text-white tabular-nums">{ntHour.toFixed(2)}</div>
+            <div className="text-3xl font-bold text-gray-800 dark:text-white tabular-nums">{ntHourDecimal.toFixed(2)}</div>
          </div>
       </div>
 
       {/* 4. OT Hour Row */}
       <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
-         {/* Small Input Box */}
+         {/* Wider Input Box */}
          <input 
             type="number" 
-            placeholder="0" 
+            placeholder="Enter General Hour" 
             value={otInput} 
             onChange={(e) => {
                 const val = parseFloat(e.target.value);
                 if (val >= 0 || e.target.value === '') setOtInput(e.target.value);
             }} 
-            className="w-32 bg-white/60 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-full px-4 py-2 text-center outline-none focus:ring-2 focus:ring-blue-400/50 no-spinner font-medium text-lg" 
+            className="w-48 bg-white/60 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-full px-6 py-2 text-center outline-none focus:ring-2 focus:ring-blue-400/50 no-spinner font-medium text-lg placeholder:text-sm placeholder:font-normal" 
          />
-         <div className="font-bold text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap flex items-center gap-2">
+         <div className="font-bold text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap flex items-center gap-2 ml-auto">
              OT HOUR
              <span className="text-blue-600 dark:text-blue-400 text-2xl tabular-nums">{otHourValue.toFixed(2)}</span>
          </div>
       </div>
 
-      {/* 5. Toggles Grid */}
-      <div className="grid grid-cols-2 gap-3 flex-1 overflow-y-auto custom-scrollbar p-1">
+      {/* 5. Toggles Grid (6 Items) */}
+      <div className="grid grid-cols-2 gap-2 flex-1 overflow-y-auto custom-scrollbar p-1">
          {toggles.map(item => (
-            // Reduced Padding (p-2)
-            <div key={item.id} className="group flex justify-between items-center px-3 py-2 rounded-xl border border-transparent bg-white/40 dark:bg-white/5 hover:border-white/30 transition-all shadow-sm">
+            // Small Height (py-1.5)
+            <div key={item.id} className="group flex justify-between items-center px-3 py-1.5 rounded-xl border border-transparent bg-white/40 dark:bg-white/5 hover:border-white/30 transition-all shadow-sm">
                
                <div className="flex items-center gap-2 flex-1 min-w-0">
                    <button onClick={() => handleEditToggle(item.id)} className="text-gray-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -212,28 +232,28 @@ export default function UpdatesApp({
                        <input 
                           value={item.label}
                           onChange={(e) => handleLabelChange(item.id, e.target.value)}
-                          className="bg-transparent border-b border-blue-500 outline-none w-full text-sm font-medium"
+                          className="bg-transparent border-b border-blue-500 outline-none w-full text-xs font-medium"
                           autoFocus
                           onKeyDown={e => e.key === 'Enter' && handleEditToggle(item.id)}
                        />
                    ) : (
-                       <span className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate select-none" title={item.label}>{item.label}</span>
+                       <span className="text-xs font-medium text-gray-700 dark:text-gray-200 truncate select-none" title={item.label}>{item.label}</span>
                    )}
                </div>
 
-               <div onClick={() => handleToggleCheck(item.id)} className={`cursor-pointer w-10 h-5 rounded-full p-0.5 flex items-center shadow-inner transition-colors duration-300 ${item.checked ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}>
+               <div onClick={() => handleToggleCheck(item.id)} className={`cursor-pointer w-8 h-4 rounded-full p-0.5 flex items-center shadow-inner transition-colors duration-300 ${item.checked ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}>
                   <motion.div 
                     initial={false}
-                    animate={{ x: item.checked ? 20 : 0 }}
+                    animate={{ x: item.checked ? 16 : 0 }}
                     transition={{ type: "spring", stiffness: 700, damping: 30 }}
-                    className="w-4 h-4 bg-white rounded-full shadow-sm"
+                    className="w-3 h-3 bg-white rounded-full shadow-sm"
                   />
                </div>
             </div>
          ))}
       </div>
 
-      {/* 6. Summary Box with Fixed Height Stability */}
+      {/* 6. Summary Box */}
       <div className="relative">
         <div 
             onClick={handleCopy}
@@ -247,7 +267,6 @@ export default function UpdatesApp({
             </div>
         </div>
         
-        {/* Absolute positioned success message to prevent height jitter */}
         <AnimatePresence>
             {copied && (
                 <motion.div 
