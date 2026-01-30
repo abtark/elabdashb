@@ -155,17 +155,15 @@ export default function DashboardPage() {
   const [activeApp, setActiveApp] = useState<string | null>('newtask');
   const [isClient, setIsClient] = useState(false);
   
-  // --- SHARED STATE ---
+  // --- SHARED STATE (LIFTED) ---
   const [totalSentLinks, setTotalSentLinks] = useState(0);
-  
-  // LIFTED: Daily Entries Data (So UpdatesApp can read "LA: 10, FC: 20")
   const [entriesCounts, setEntriesCounts] = useState<Record<string, number>>({
     cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0
   });
 
   const [showBubbles, setShowBubbles] = useState(false);
   
-  // Global Reset Signal (Increment to trigger resets in children)
+  // Global Reset Signal (Increment to trigger children cleanup)
   const [resetSignal, setResetSignal] = useState(0);
 
   const generalSW = useStopwatch('general');
@@ -186,7 +184,7 @@ export default function DashboardPage() {
   const handleGlobalReset = () => {
       setTotalSentLinks(0);
       setEntriesCounts({ cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0 });
-      setResetSignal(prev => prev + 1); // Trigger children cleanup
+      setResetSignal(prev => prev + 1); // Trigger children to clear their logs
   };
 
   const formatTime = (ms: number) => {
@@ -262,7 +260,7 @@ export default function DashboardPage() {
                      {activeApp === 'entries' && (
                        <EntriesApp 
                          onClose={handleClose} 
-                         counts={entriesCounts} // Pass Lifted State
+                         counts={entriesCounts} // Pass Shared State
                          setCounts={setEntriesCounts} 
                          resetSignal={resetSignal} // Pass Reset Signal
                        />
@@ -281,10 +279,10 @@ export default function DashboardPage() {
                        <UpdatesApp 
                          onClose={handleClose} 
                          totalSentLinks={totalSentLinks}
-                         entriesCounts={entriesCounts} // Pass Full Data
+                         entriesCounts={entriesCounts} // Pass Shared State
                          generalElapsed={generalSW.elapsed}
                          newTaskElapsed={newTaskSW.elapsed}
-                         onGlobalReset={handleGlobalReset} // Pass Global Reset Function
+                         onGlobalReset={handleGlobalReset} // Pass Reset Handler
                        />
                      )}
                      {activeApp === 'snacks' && <SnacksApp onClose={handleClose} />}
