@@ -24,23 +24,40 @@ interface TrackerAppProps {
   toggleBubbles: () => void;
 }
 
+// --- HELPER: Decimal Hour ---
+const getDecimalHours = (ms: number) => {
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  
+  // "Do not count seconds, only count based on minutes"
+  // Formula: Hours + (Minutes / 60)
+  const decimal = hours + (minutes / 60);
+  
+  return `[${decimal.toFixed(2)}h]`;
+};
+
+// --- STOPWATCH COMPONENT ---
 const StopwatchDisplay = ({ 
-  label, time, isRunning, laps, onToggle, onReset, onLap, onDeleteLap, formatTime 
+  label, time, elapsed, isRunning, laps, onToggle, onReset, onLap, onDeleteLap, formatTime 
 }: { 
-  label: string, time: string, isRunning: boolean, laps: number[], onToggle: () => void, onReset: () => void, onLap: () => void, onDeleteLap: (i:number)=>void, formatTime: (ms: number) => string
+  label: string, time: string, elapsed: number, isRunning: boolean, laps: number[], onToggle: () => void, onReset: () => void, onLap: () => void, onDeleteLap: (i:number)=>void, formatTime: (ms: number) => string
 }) => (
   <div className="flex flex-col items-center w-full h-full gap-4">
     
-    {/* Timer Circle */}
-    <div className="flex flex-col items-center justify-center bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-8 backdrop-blur-md shadow-sm w-full max-w-2xl flex-1 min-h-[300px]">
+    {/* Timer Circle Container - Fixed Height to prevent jumping */}
+    <div className="flex flex-col items-center justify-center bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-8 backdrop-blur-md shadow-sm w-full max-w-2xl h-[450px] shrink-0 transition-all">
       <h2 className="text-2xl font-bold mb-8 text-gray-800 dark:text-white flex items-center gap-3">
-        {/* Fixed width for icon container to prevent jitter */}
         <div className="w-8 h-8 flex items-center justify-center"><Clock size={28} className="text-orange-500" /></div> 
         {label}
+        {/* Decimal Hour Display */}
+        <span className="text-lg font-mono text-gray-500 dark:text-gray-400 ml-2 font-normal">
+            {getDecimalHours(elapsed)}
+        </span>
       </h2>
       
-      {/* Fixed Width Time Display */}
-      <div className="text-7xl sm:text-8xl font-mono font-bold text-gray-800 dark:text-white mb-10 tracking-wider tabular-nums w-full text-center">
+      {/* Time Display */}
+      <div className="text-7xl sm:text-8xl font-mono font-bold text-gray-800 dark:text-white mb-10 tracking-wider tabular-nums w-full text-center select-none">
         {time}
       </div>
       
@@ -62,36 +79,38 @@ const StopwatchDisplay = ({
       </div>
     </div>
 
-    {/* Laps List (Matches Image Height Approx) */}
-    {laps.length > 0 && (
-        <div className="w-full max-w-2xl bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 backdrop-blur-md shadow-sm overflow-hidden flex-shrink-0 h-[220px] flex flex-col">
-            <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider text-center sticky top-0 bg-transparent z-10">Laps</h3>
-            <div className="overflow-y-auto custom-scrollbar pr-2 flex-1">
-                {laps.map((lapTime, index) => (
-                    <div key={index} className="flex justify-between items-center py-2.5 border-b border-gray-200 dark:border-white/10 last:border-0 text-sm font-mono font-medium text-gray-700 dark:text-gray-200 hover:bg-white/10 rounded px-2 transition-colors group">
-                        <span className="opacity-60 w-16">Lap {laps.length - index}</span>
-                        
-                        {/* Click to Copy Time */}
-                        <span 
-                            className="flex-1 text-center cursor-pointer hover:text-blue-500 active:scale-95 transition-all"
-                            onClick={() => navigator.clipboard.writeText(formatTime(lapTime))}
-                            title="Click to copy"
-                        >
-                            {formatTime(lapTime)}
-                        </span>
+    {/* Laps List - Fixed Height Container */}
+    <div className="w-full max-w-2xl h-[200px] shrink-0">
+        {laps.length > 0 && (
+            <div className="w-full h-full bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-2xl p-4 backdrop-blur-md shadow-sm overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider text-center sticky top-0 bg-transparent z-10">Laps</h3>
+                <div className="overflow-y-auto custom-scrollbar pr-2 flex-1">
+                    {laps.map((lapTime, index) => (
+                        <div key={index} className="flex justify-between items-center py-2.5 border-b border-gray-200 dark:border-white/10 last:border-0 text-sm font-mono font-medium text-gray-700 dark:text-gray-200 hover:bg-white/10 rounded px-2 transition-colors group">
+                            <span className="opacity-60 w-16">Lap {laps.length - index}</span>
+                            
+                            {/* Click to Copy Time */}
+                            <span 
+                                className="flex-1 text-center cursor-pointer hover:text-blue-500 active:scale-95 transition-all select-none"
+                                onClick={() => navigator.clipboard.writeText(formatTime(lapTime))}
+                                title="Click to copy"
+                            >
+                                {formatTime(lapTime)}
+                            </span>
 
-                        {/* Delete Button */}
-                        <button 
-                            onClick={() => onDeleteLap(index)} 
-                            className="w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-500/10 rounded-full transition-all"
-                        >
-                            <X size={16} />
-                        </button>
-                    </div>
-                ))}
+                            {/* Delete Button */}
+                            <button 
+                                onClick={() => onDeleteLap(index)} 
+                                className="w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-500/10 rounded-full transition-all"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                    ))}
+                </div>
             </div>
-        </div>
-    )}
+        )}
+    </div>
   </div>
 );
 
@@ -115,10 +134,10 @@ export default function TrackerApp({ onClose, generalSW, newTaskSW, formatTime, 
   }, []);
 
   return (
-    <div className="h-full flex flex-col relative w-full font-ubuntu gap-4">
+    <div className="h-full flex flex-col relative w-full font-ubuntu gap-2">
       
       {/* 1. Header Menu */}
-      <div className="flex justify-center items-center gap-4 shrink-0 relative min-h-[40px]">
+      <div className="flex justify-center items-center gap-4 mb-2 shrink-0 relative min-h-[40px]">
         <button onClick={() => setActiveTab('general')} className={`flex items-center gap-2 px-6 py-2 rounded-full text-sm font-medium border transition-all ${activeTab === 'general' ? 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-white/20 dark:bg-white/5 border-transparent hover:bg-white/40 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400'}`}>
             <Clock size={16} /> General
         </button>
@@ -128,8 +147,8 @@ export default function TrackerApp({ onClose, generalSW, newTaskSW, formatTime, 
         <CloseButton onClick={onClose} />
       </div>
 
-      {/* 2. Date & Toggle Display Section (Single Line) */}
-      <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl py-3 px-6 flex items-center justify-between shadow-sm backdrop-blur-md shrink-0">
+      {/* 2. Info Bar (Date + Toggle) */}
+      <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl py-2 px-6 flex items-center justify-between shadow-sm backdrop-blur-md shrink-0 w-full max-w-2xl mx-auto">
           
           {/* Date */}
           <div className="flex items-center gap-3 text-gray-700 dark:text-gray-200 text-sm font-bold">
@@ -137,6 +156,9 @@ export default function TrackerApp({ onClose, generalSW, newTaskSW, formatTime, 
               <CircleDot size={6} className="text-gray-400 fill-current" />
               <span>{currentDate.day}</span>
           </div>
+
+          {/* Divider */}
+          <div className="h-6 w-px bg-gray-300 dark:bg-white/10 mx-2"></div>
 
           {/* Toggle */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={toggleBubbles}>
@@ -147,12 +169,13 @@ export default function TrackerApp({ onClose, generalSW, newTaskSW, formatTime, 
          </div>
       </div>
 
-      {/* 4. Main Content (Full Width) */}
+      {/* 4. Main Content */}
       <div className="flex-1 overflow-hidden w-full flex flex-col items-center">
         {activeTab === 'general' ? (
           <StopwatchDisplay 
             label="Main Stopwatch" 
-            time={formatTime(generalSW.elapsed)} 
+            time={formatTime(generalSW.elapsed)}
+            elapsed={generalSW.elapsed}
             isRunning={generalSW.isRunning} 
             laps={generalSW.laps}
             onToggle={generalSW.isRunning ? generalSW.pause : generalSW.start} 
@@ -165,6 +188,7 @@ export default function TrackerApp({ onClose, generalSW, newTaskSW, formatTime, 
           <StopwatchDisplay 
             label="NT Stopwatch" 
             time={formatTime(newTaskSW.elapsed)} 
+            elapsed={newTaskSW.elapsed}
             isRunning={newTaskSW.isRunning} 
             laps={newTaskSW.laps}
             onToggle={newTaskSW.isRunning ? newTaskSW.pause : newTaskSW.start} 
