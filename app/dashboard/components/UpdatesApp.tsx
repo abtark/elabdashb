@@ -197,7 +197,11 @@ export default function UpdatesApp({
          </div>
       </div>
 
-      {/* FIXED OT Section Layout: Side-by-Side & No Jitter */}
+      {/* FIXED OT Section: 
+          - Border Colors Matched (Input & Button)
+          - Button Background Removed (Transparent)
+          - OT Hour Text Styles Matched (Text & Value same color/size)
+      */}
       <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-3 flex items-center justify-between shadow-sm gap-4 shrink-0">
          <input 
             type="number" 
@@ -207,18 +211,18 @@ export default function UpdatesApp({
                 const val = parseFloat(e.target.value);
                 if (val >= 0 || e.target.value === '') setOtInput(e.target.value);
             }} 
-            className="w-48 bg-white/60 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-center outline-none focus:ring-2 focus:ring-blue-400/50 no-spinner font-medium text-lg placeholder:text-sm placeholder:font-normal placeholder:text-gray-400" 
+            className="w-48 bg-white/60 dark:bg-black/20 border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 text-center outline-none focus:ring-2 focus:ring-blue-400/50 no-spinner font-medium text-lg placeholder:text-sm placeholder:font-normal placeholder:text-gray-400" 
          />
          
-         {/* Fixed width container to prevent jitter */}
-         <div className="flex-1 flex items-center justify-center gap-2 min-w-[140px]">
-             <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">OT Hour:</span>
-             <span className="text-blue-600 dark:text-blue-400 text-2xl font-bold tabular-nums min-w-[60px] text-left">{otHourValue.toFixed(2)}</span>
+         {/* Updated Text Style to match Value */}
+         <div className="flex-1 flex items-center justify-center gap-2 min-w-[140px] text-blue-600 dark:text-blue-400">
+             <span className="text-2xl font-bold uppercase tracking-wide">OT Hour:</span>
+             <span className="text-2xl font-bold tabular-nums min-w-[60px] text-left">{otHourValue.toFixed(2)}</span>
          </div>
 
          <button 
             onClick={handleCopyOT}
-            className="w-32 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95 shrink-0"
+            className="w-32 flex items-center justify-center gap-2 bg-transparent border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white hover:bg-black/5 dark:hover:bg-white/10 px-4 py-3 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 shrink-0"
          >
             {otCopied ? <Check size={16}/> : <Copy size={16}/>}
             {otCopied ? 'Copied' : 'Copy OT'}
@@ -274,7 +278,7 @@ export default function UpdatesApp({
         </AnimatePresence>
       </div>
 
-      <ConfirmModal isOpen={resetConfirmOpen} onClose={() => setResetConfirmOpen(false)} onConfirm={onGlobalReset} message="Reset ALL data (Entries, Links, Updates)?" />
+      <ConfirmModal isOpen={resetConfirmOpen} onClose={() => setResetConfirmOpen(false)} onConfirm={onGlobalReset} message="Reset all daily data (Entries, Updates)?" />
     </div>
   );
 }
