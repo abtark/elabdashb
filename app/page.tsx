@@ -44,14 +44,14 @@ export default function LoginPage() {
         {/* Glass Container */}
         <div className="w-full bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-2xl rounded-3xl p-8 md:p-12 overflow-y-auto">
           
-          {/* Logo Section */}
+          {/* Logo Section - UPDATED SIZE */}
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="flex justify-center mb-8"
           >
-            <div className="relative w-24 h-24 md:w-32 md:h-32 drop-shadow-2xl">
+            <div className="relative w-32 h-32 md:w-48 md:h-48 drop-shadow-2xl">
               <Image 
                 src="https://iili.io/FC3KC6g.png" 
                 alt="Emanistation Logo" 
@@ -75,7 +75,7 @@ export default function LoginPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="text-gray-500 dark:text-white/50 text-center mb-10 text-sm md:text-base"
+            className="text-gray-600 dark:text-white/60 text-center mb-10 text-sm md:text-base"
           >
             Welcome back, please enter your details.
           </motion.p>
