@@ -57,7 +57,8 @@ export default function UpdatesApp({
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
   // Derived Values
-  const otHourValue = Math.max(0, mainHourDecimal - (parseFloat(otInput) || 0));
+  // OT Calculation: If input empty -> 0. If input exists -> Main - Input
+  const otHourValue = otInput ? Math.max(0, mainHourDecimal - parseFloat(otInput)) : 0;
   
   const LABELS: Record<string, string> = {
     cat1: 'LA', cat2: 'FC', cat3: 'FL', cat4: 'Others', cat5: 'Chk Name', cat6: 'Urgent Task'
@@ -98,8 +99,7 @@ export default function UpdatesApp({
   useEffect(() => {
       if (resetSignal > 0) {
           setOtInput('');
-          // Optional: Reset toggles? Usually toggles might remain, but inputs clear.
-          // Let's clear OT input only as it's a daily value.
+          // Note: Toggles are preferences, typically not reset daily, but logic can be added if needed.
       }
   }, [resetSignal]);
 
@@ -198,8 +198,8 @@ export default function UpdatesApp({
          </div>
       </div>
 
-      {/* 4. OT Hour Row */}
-      <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+      {/* 4. OT Hour Row (Justify Around) */}
+      <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-4 flex items-center justify-around shadow-sm">
          {/* Wider Input Box */}
          <input 
             type="number" 
@@ -209,19 +209,19 @@ export default function UpdatesApp({
                 const val = parseFloat(e.target.value);
                 if (val >= 0 || e.target.value === '') setOtInput(e.target.value);
             }} 
-            className="w-48 bg-white/60 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-full px-6 py-2 text-center outline-none focus:ring-2 focus:ring-blue-400/50 no-spinner font-medium text-lg placeholder:text-sm placeholder:font-normal" 
+            className="w-48 bg-white/60 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-full px-6 py-2 text-center outline-none focus:ring-2 focus:ring-blue-400/50 no-spinner font-medium text-lg placeholder:text-sm placeholder:font-normal placeholder:text-gray-400" 
          />
-         <div className="font-bold text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap flex items-center gap-2 ml-auto">
+         <div className="font-bold text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap flex items-center gap-2">
              OT HOUR
              <span className="text-blue-600 dark:text-blue-400 text-2xl tabular-nums">{otHourValue.toFixed(2)}</span>
          </div>
       </div>
 
-      {/* 5. Toggles Grid (6 Items) */}
+      {/* 5. Toggles Grid (6 Items, Reduced Height) */}
       <div className="grid grid-cols-2 gap-2 flex-1 overflow-y-auto custom-scrollbar p-1">
          {toggles.map(item => (
-            // Small Height (py-1.5)
-            <div key={item.id} className="group flex justify-between items-center px-3 py-1.5 rounded-xl border border-transparent bg-white/40 dark:bg-white/5 hover:border-white/30 transition-all shadow-sm">
+            // Small Height (py-1)
+            <div key={item.id} className="group flex justify-between items-center px-3 py-1 rounded-xl border border-transparent bg-white/40 dark:bg-white/5 hover:border-white/30 transition-all shadow-sm">
                
                <div className="flex items-center gap-2 flex-1 min-w-0">
                    <button onClick={() => handleEditToggle(item.id)} className="text-gray-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -287,7 +287,7 @@ export default function UpdatesApp({
         isOpen={resetConfirmOpen} 
         onClose={() => setResetConfirmOpen(false)} 
         onConfirm={onGlobalReset} 
-        message="Reset ALL daily progress across Dashboard (Entries, Links, Updates)?" 
+        message="Reset ALL daily progress across Dashboard (Entries, Links, Updates, Timer)?" 
       />
     </div>
   );
