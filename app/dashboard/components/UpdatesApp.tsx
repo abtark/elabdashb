@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { X, RotateCcw, Hourglass, Edit2, Check } from "lucide-react";
-import { motion } from "framer-motion";
+import { X, RotateCcw, Hourglass, Edit2, Check, Zap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 // --- TYPES ---
 interface UpdatesAppProps {
@@ -28,6 +28,22 @@ const CloseButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
+const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+      <motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center">
+        <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Confirmation</h3>
+        <p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p>
+        <div className="flex justify-center gap-4">
+          <button onClick={onClose} className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">No</button>
+          <button onClick={() => { onConfirm(); onClose(); }} className="px-4 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition-colors">Yes</button>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 // --- MAIN COMPONENT ---
 export default function UpdatesApp({ 
   onClose, totalSentLinks, entriesCounts, generalElapsed, newTaskElapsed, onGlobalReset 
@@ -37,11 +53,12 @@ export default function UpdatesApp({
   const [otInput, setOtInput] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [toggles, setToggles] = useState<ToggleItem[]>([]);
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
   // Derived Values
   const mainHour = generalElapsed / 3600000;
   const ntHour = newTaskElapsed / 3600000;
-  const otHour = Math.max(0, mainHour - (parseFloat(otInput) || 0));
+  const otHourValue = Math.max(0, mainHour - (parseFloat(otInput) || 0));
   
   const LABELS: Record<string, string> = {
     cat1: 'LA', cat2: 'FC', cat3: 'FL', cat4: 'Others', cat5: 'Chk Name', cat6: 'Urgent Task'
@@ -105,10 +122,14 @@ export default function UpdatesApp({
       return parts.join(', ');
   };
 
-  const summaryText = generateSummary() || "No updates available.";
+  const summaryText = generateSummary(); // May be empty
+  const displayText = summaryText || "No updates available.";
+  const isCopyable = summaryText.length > 0;
+  
   const totalEntries = Object.values(entriesCounts).reduce((a,b)=>a+b,0);
 
   const handleCopy = () => {
+      if (!isCopyable) return;
       navigator.clipboard.writeText(summaryText);
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
@@ -119,8 +140,8 @@ export default function UpdatesApp({
       
       {/* 1. Header (Red Background) */}
       <div className="relative flex justify-center items-center shrink-0 min-h-[40px]">
-         <div className="px-6 py-2 rounded-full bg-[#A80038] text-white font-medium text-sm shadow-lg cursor-default">
-            ELab Updates
+         <div className="px-6 py-2 rounded-full bg-[#A80038] text-white font-medium text-sm shadow-lg cursor-default flex items-center gap-2">
+            <Zap size={16} fill="currentColor" /> ELab Updates
          </div>
          <CloseButton onClick={onClose} />
       </div>
@@ -138,7 +159,7 @@ export default function UpdatesApp({
          </div>
          <div className="h-4 w-px bg-gray-300 dark:bg-white/10"></div>
          <button 
-            onClick={() => { if(confirm('Reset ALL daily progress across Dashboard?')) onGlobalReset() }}
+            onClick={() => setResetConfirmOpen(true)}
             className="flex items-center gap-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1.5 rounded-lg transition-colors border border-red-500/20"
          >
             <RotateCcw size={14}/> Reset
@@ -159,26 +180,28 @@ export default function UpdatesApp({
 
       {/* 4. OT Hour Row */}
       <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+         {/* Small Input Box */}
          <input 
             type="number" 
-            placeholder="Enter General Hour" 
+            placeholder="0" 
             value={otInput} 
             onChange={(e) => {
                 const val = parseFloat(e.target.value);
                 if (val >= 0 || e.target.value === '') setOtInput(e.target.value);
             }} 
-            className="flex-1 bg-white/60 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-full px-6 py-2 text-center outline-none focus:ring-2 focus:ring-blue-400/50 no-spinner font-medium text-lg" 
+            className="w-32 bg-white/60 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-full px-4 py-2 text-center outline-none focus:ring-2 focus:ring-blue-400/50 no-spinner font-medium text-lg" 
          />
          <div className="font-bold text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap flex items-center gap-2">
-             OT Hour 
-             <span className="text-blue-600 dark:text-blue-400 text-2xl tabular-nums">{otHour.toFixed(2)}</span>
+             OT HOUR
+             <span className="text-blue-600 dark:text-blue-400 text-2xl tabular-nums">{otHourValue.toFixed(2)}</span>
          </div>
       </div>
 
       {/* 5. Toggles Grid */}
       <div className="grid grid-cols-2 gap-3 flex-1 overflow-y-auto custom-scrollbar p-1">
          {toggles.map(item => (
-            <div key={item.id} className="group flex justify-between items-center p-3 rounded-xl border border-transparent bg-white/40 dark:bg-white/5 hover:border-white/30 transition-all shadow-sm">
+            // Reduced Padding (p-2)
+            <div key={item.id} className="group flex justify-between items-center px-3 py-2 rounded-xl border border-transparent bg-white/40 dark:bg-white/5 hover:border-white/30 transition-all shadow-sm">
                
                <div className="flex items-center gap-2 flex-1 min-w-0">
                    <button onClick={() => handleEditToggle(item.id)} className="text-gray-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -210,18 +233,43 @@ export default function UpdatesApp({
          ))}
       </div>
 
-      {/* 6. Summary Box */}
-      <div 
-        onClick={handleCopy}
-        className={`bg-white/60 dark:bg-black/40 border border-white/30 dark:border-white/10 rounded-2xl p-4 text-center cursor-pointer transition-all duration-300 shadow-sm shrink-0
-            ${copied ? 'bg-green-100/80 dark:bg-green-900/30 border-green-500/50 scale-[1.02]' : 'hover:bg-white/80 dark:hover:bg-white/10'}
-        `}
-      >
-         <div className="font-medium text-sm text-gray-800 dark:text-gray-200 break-words leading-relaxed select-none">
-            {summaryText}
-         </div>
-         {copied && <div className="text-xs text-green-600 dark:text-green-400 font-bold mt-2 animate-pulse">Copied to clipboard!</div>}
+      {/* 6. Summary Box with Fixed Height Stability */}
+      <div className="relative">
+        <div 
+            onClick={handleCopy}
+            className={`bg-white/60 dark:bg-black/40 border border-white/30 dark:border-white/10 rounded-2xl p-4 text-center transition-all duration-300 shadow-sm shrink-0 min-h-[80px] flex flex-col justify-center items-center
+                ${isCopyable ? 'cursor-pointer hover:bg-white/80 dark:hover:bg-white/10' : 'cursor-not-allowed opacity-70'}
+                ${copied ? 'bg-green-100/80 dark:bg-green-900/30 border-green-500/50 scale-[1.02]' : ''}
+            `}
+        >
+            <div className="font-medium text-sm text-gray-800 dark:text-gray-200 break-words leading-relaxed select-none w-full">
+                {displayText}
+            </div>
+        </div>
+        
+        {/* Absolute positioned success message to prevent height jitter */}
+        <AnimatePresence>
+            {copied && (
+                <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute bottom-2 left-0 right-0 text-center pointer-events-none"
+                >
+                    <span className="text-[10px] uppercase font-bold text-green-600 dark:text-green-400 bg-white/80 dark:bg-black/80 px-2 py-0.5 rounded-full shadow-sm">
+                        Copied to clipboard!
+                    </span>
+                </motion.div>
+            )}
+        </AnimatePresence>
       </div>
+
+      <ConfirmModal 
+        isOpen={resetConfirmOpen} 
+        onClose={() => setResetConfirmOpen(false)} 
+        onConfirm={onGlobalReset} 
+        message="Reset ALL daily progress across Dashboard (Entries, Links, Updates)?" 
+      />
     </div>
   );
 }
