@@ -3,11 +3,9 @@ import React, { useState, useEffect } from "react";
 import { X, RotateCcw, Hourglass, Edit2, Check, Zap, Copy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// ... Interfaces ...
 interface UpdatesAppProps { onClose: () => void; totalSentLinks: number; entriesCounts: Record<string, number>; mainHourDecimal: number; ntHourDecimal: number; onGlobalReset: () => void; resetSignal: number; }
 interface ToggleItem { id: string; label: string; checked: boolean; editing: boolean; }
 
-// CloseButton: White in dark mode
 const CloseButton = ({ onClick }: { onClick: () => void }) => (
   <button onClick={onClick} className="absolute right-0 top-1/2 -translate-y-1/2 group flex items-center bg-transparent border border-gray-300 dark:border-white/20 rounded-full p-1.5 hover:bg-red-500 hover:border-red-500 hover:pr-3 transition-all duration-300 text-gray-500 dark:text-white hover:text-white">
     <X size={16} />
@@ -24,7 +22,6 @@ export default function UpdatesApp({ onClose, totalSentLinks, entriesCounts, mai
   const [toggles, setToggles] = useState<ToggleItem[]>([]);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
-  // ... Hooks & Logic ...
   const otHourValue = otInput ? Math.max(0, mainHourDecimal - parseFloat(otInput)) : 0;
   const LABELS: Record<string, string> = { cat1: 'LA', cat2: 'FC', cat3: 'FL', cat4: 'Others', cat5: 'Chk Name', cat6: 'Urgent Task' };
   useEffect(() => {
@@ -50,8 +47,8 @@ export default function UpdatesApp({ onClose, totalSentLinks, entriesCounts, mai
   return (
     <div className="h-full flex flex-col relative gap-3 w-full px-2 font-ubuntu">
       <div className="relative flex justify-center items-center shrink-0 min-h-[40px]">
-         {/* Confirmed EntryLab Red: #A80038 */}
-         <div className="px-6 py-2 rounded-full bg-[#A80038] text-white font-medium text-sm shadow-lg cursor-default flex items-center gap-2"><Zap size={16} fill="currentColor" /> ELab Updates</div>
+         {/* UPDATED: Background Color #18B0FE */}
+         <div className="px-6 py-2 rounded-full bg-[#18B0FE] text-white font-medium text-sm shadow-lg cursor-default flex items-center gap-2"><Zap size={16} fill="currentColor" /> ELab Updates</div>
          <CloseButton onClick={onClose} />
       </div>
 
