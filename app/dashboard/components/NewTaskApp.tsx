@@ -9,11 +9,9 @@ import {
 import { FaDiscord } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-// ... Interfaces ...
 interface EmailItem { id: string; text: string; copied: boolean; selected: boolean; }
 interface LogItem { id: number; value: number; txt: string; }
 
-// Updated CloseButton: White text/icon in dark mode
 const CloseButton = ({ onClick }: { onClick: () => void }) => (
   <button onClick={onClick} className="absolute right-0 top-1/2 -translate-y-1/2 group flex items-center bg-transparent border border-gray-300 dark:border-white/20 rounded-full p-1.5 hover:bg-red-500 hover:border-red-500 hover:pr-3 transition-all duration-300 text-gray-500 dark:text-white hover:text-white">
     <X size={16} />
@@ -21,7 +19,7 @@ const CloseButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
-// ... Modals (AlertModal, ConfirmModal, Modal) ...
+// ... Modals ...
 const Modal = ({ isOpen, onClose, title, children }: any) => { if (!isOpen) return null; return <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"><motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-md p-6 shadow-2xl relative flex flex-col max-h-[80vh]"><div className="flex justify-between items-center mb-4 shrink-0"><h3 className="text-lg font-bold text-gray-800 dark:text-white">{title}</h3><button onClick={onClose}><X size={20} className="text-gray-500 dark:text-white hover:opacity-100" /></button></div><div className="flex-1 overflow-y-auto custom-scrollbar">{children}</div></motion.div></div>; };
 const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => { if (!isOpen) return null; return <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"><motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center"><h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Confirmation</h3><p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p><div className="flex justify-center gap-4"><button onClick={onClose} className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">No</button><button onClick={() => { onConfirm(); onClose(); }} className="px-4 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition-colors">Yes</button></div></motion.div></div>; };
 const AlertModal = ({ isOpen, onClose, message }: any) => { if (!isOpen) return null; return <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"><motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center flex flex-col items-center gap-4"><AlertCircle size={48} className="text-orange-500" /><p className="text-gray-800 dark:text-white font-medium text-center">{message}</p><button onClick={onClose} className="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors">OK</button></motion.div></div>; };
@@ -29,9 +27,10 @@ const AlertModal = ({ isOpen, onClose, message }: any) => { if (!isOpen) return 
 const LinkedInSection = ({ triggerConfirm }: { triggerConfirm: (msg: string, action: () => void) => void }) => {
   const [totalSales, setTotalSales] = useState<number | ''>('');
   const [currentPage, setCurrentPage] = useState<number | ''>('');
-  // ... (Existing Logic)
+  
   useEffect(() => { const savedSales = localStorage.getItem('nt_self_total_sales'); const savedPage = localStorage.getItem('nt_self_current_page'); if (savedSales) setTotalSales(Number(savedSales)); if (savedPage) setCurrentPage(Number(savedPage)); }, []);
   useEffect(() => { localStorage.setItem('nt_self_total_sales', String(totalSales)); localStorage.setItem('nt_self_current_page', String(currentPage)); }, [totalSales, currentPage]);
+
   const calculate = () => { const total = Number(totalSales) || 0; const current = Number(currentPage) || 0; const approx = total > 0 ? (total <= 2500 ? Math.ceil(total / 25) : 100) : 0; const remain = approx > current ? approx - current : 0; return { approx, remain }; };
   const { approx, remain } = calculate();
   const handleReset = () => { setTotalSales(''); setCurrentPage(''); };
@@ -68,9 +67,7 @@ const SentLinksSection = ({ total, setTotal, triggerConfirm, setLogs, onOpenLogs
   );
 };
 
-// ... EmailManagerSection (Skipping details, keeping styles consistent) ...
 const EmailManagerSection = ({ triggerAlert, triggerConfirm }: any) => {
-    // (Preserve existing logic)
     const [emails, setEmails] = useState<EmailItem[]>([]);
     const [pageIndex, setPageIndex] = useState(0); 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -132,7 +129,7 @@ const OfficePage = ({ triggerConfirm, resetSignal }: { triggerConfirm: any, rese
   
   const hours = ['08 AM', '09 AM', '10 AM', '11 AM', '12 PM', '01 PM', '02 PM', '03 PM', '04 PM', '05 PM', '06 PM', '07 PM', '08 PM'];
 
-  // ... (Persistence Logic) ...
+  // Persistence
   useEffect(() => { const savedTarget = localStorage.getItem('nt_office_target'); const savedInputs = localStorage.getItem('nt_office_inputs'); if (savedTarget) setTarget(Number(savedTarget)); if (savedInputs) setInputs(JSON.parse(savedInputs)); }, []);
   useEffect(() => { localStorage.setItem('nt_office_target', String(target)); localStorage.setItem('nt_office_inputs', JSON.stringify(inputs)); }, [target, inputs]);
 
@@ -141,13 +138,12 @@ const OfficePage = ({ triggerConfirm, resetSignal }: { triggerConfirm: any, rese
   const needed = Math.max(0, target - officeTotal);
   const handleInput = (type: 'sales' | 'search', index: number, val: string) => { setInputs(prev => ({ ...prev, [`${type}-${index}`]: val })); };
 
-  // ... (Send Logic) ...
+  // Send Logic
   const sendToDiscord = async () => { setIsSending(true); setIsSent(false); const content = `Sent Links: **${officeTotal.toLocaleString()}**\n\nNeed to send more **${needed.toLocaleString()}** links to reach **${target/1000}k** Milestone`; const webhookURL = "https://discord.com/api/webhooks/1466497164157911042/Cxc4IR1RJ0idOh-ctI5pyHYnODdHo4Hpk30qn3L7edcv960mzkg62BIaA-N0xmlIyDzV"; try { await fetch(webhookURL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content }) }); setIsSending(false); setIsSent(true); setTimeout(() => setIsSent(false), 2000); } catch (e) { alert("Failed to send."); setIsSending(false); } };
 
   return (
     <div className="space-y-4 h-full overflow-y-auto pr-1 pb-4 custom-scrollbar">
       <div className="bg-blue-100/50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/20 rounded-2xl p-4 flex items-center justify-between">
-         {/* ... (Header Logic) ... */}
          <div className="flex items-center gap-2 min-w-[200px]">
             <span className="font-bold text-blue-700 dark:text-blue-300">Targeted Value</span>
             <select value={target} onChange={(e) => setTarget(Number(e.target.value))} className="bg-white dark:bg-black/20 border border-blue-300 rounded-full px-3 py-1 text-sm font-bold text-blue-600 focus:outline-none cursor-pointer">
@@ -184,7 +180,6 @@ const OfficePage = ({ triggerConfirm, resetSignal }: { triggerConfirm: any, rese
          <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
             {hours.map((time, i) => (
                <div key={i} className="grid grid-cols-[1fr_80px_1fr] gap-4 items-center">
-                  {/* UPDATED INPUT COLOR: text-gray-800 dark:text-white */}
                   <input type="number" value={inputs[`sales-${i}`] || ''} onChange={(e) => handleInput('sales', i, e.target.value)} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1 text-center outline-none focus:border-blue-400 no-spinner tabular-nums text-gray-800 dark:text-white" />
                   <div className="text-xs font-bold text-gray-500 dark:text-gray-400 text-center">{time}</div>
                   <input type="number" value={inputs[`search-${i}`] || ''} onChange={(e) => handleInput('search', i, e.target.value)} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1 text-center outline-none focus:border-blue-400 no-spinner tabular-nums text-gray-800 dark:text-white" />
@@ -202,16 +197,15 @@ const OfficePage = ({ triggerConfirm, resetSignal }: { triggerConfirm: any, rese
   );
 };
 
-// ... Main App Component ...
 export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks, resetSignal }: any) {
   const [activeTab, setActiveTab] = useState<'self' | 'office'>('self');
-  // ... (Logs State) ...
+  // Logs & Modals
   const [sentLinksLogs, setSentLinksLogs] = useState<LogItem[]>([]);
   const [alertInfo, setAlertInfo] = useState<{isOpen: boolean, message: string}>({isOpen: false, message: ''});
   const [confirmInfo, setConfirmInfo] = useState<{isOpen: boolean, message: string, onConfirm: () => void}>({isOpen: false, message: '', onConfirm: () => {}});
   const [logModalInfo, setLogModalInfo] = useState<{isOpen: boolean, title: string, logs: LogItem[]}>({isOpen: false, title: '', logs: []});
 
-  // Tab Persistence
+  // TAB PERSISTENCE
   useEffect(() => { const savedTab = localStorage.getItem('nt_active_tab'); if (savedTab) setActiveTab(savedTab as 'self' | 'office'); }, []);
   useEffect(() => { localStorage.setItem('nt_active_tab', activeTab); }, [activeTab]);
 
@@ -219,7 +213,6 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks,
   useEffect(() => { localStorage.setItem('nt_self_sent_links_logs', JSON.stringify(sentLinksLogs)); }, [sentLinksLogs]);
   useEffect(() => { if (resetSignal > 0) setSentLinksLogs([]); }, [resetSignal]);
 
-  // (Helper functions: triggerAlert, triggerConfirm, openLogs, deleteLog - same as before)
   const triggerAlert = (message: string) => setAlertInfo({ isOpen: true, message });
   const triggerConfirm = (message: string, onConfirm: () => void) => setConfirmInfo({ isOpen: true, message, onConfirm });
   const openLogs = () => { setLogModalInfo({ isOpen: true, title: "Sent Links Logs", logs: sentLinksLogs }); };
@@ -228,7 +221,8 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks,
   return (
     <div className="h-full flex flex-col relative">
       <div className="flex justify-center items-center gap-4 mb-3 shrink-0 relative">
-        <button onClick={() => setActiveTab('self')} className={`flex items-center gap-2 px-6 py-2 rounded-full transition-all text-sm font-medium border ${activeTab === 'self' ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-white/20 dark:bg-white/5 border-transparent hover:bg-white/40 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400'}`}><User size={16} /> Self</button>
+        {/* Updated Discord Color: #5865F2 */}
+        <button onClick={() => setActiveTab('self')} className={`flex items-center gap-2 px-6 py-2 rounded-full transition-all text-sm font-medium border ${activeTab === 'self' ? 'bg-[#5865F2] border-[#5865F2] text-white shadow-lg shadow-[#5865F2]/20' : 'bg-white/20 dark:bg-white/5 border-transparent hover:bg-white/40 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400'}`}><User size={16} /> Self</button>
         <button onClick={() => setActiveTab('office')} className={`flex items-center gap-2 px-6 py-2 rounded-full transition-all text-sm font-medium border ${activeTab === 'office' ? 'bg-[#5865F2] border-[#5865F2] text-white shadow-lg shadow-[#5865F2]/20' : 'bg-white/20 dark:bg-white/5 border-transparent hover:bg-white/40 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400'}`}><Building size={16} /> Office</button>
         <CloseButton onClick={onClose} />
       </div>
