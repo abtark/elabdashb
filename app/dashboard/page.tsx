@@ -22,7 +22,8 @@ const useStopwatch = (id: string) => {
   const [state, setState] = useState({
     startTime: 0,
     elapsed: 0,
-    isRunning: false
+    isRunning: false,
+    laps: [] as number[]
   });
 
   useEffect(() => {
@@ -35,10 +36,11 @@ const useStopwatch = (id: string) => {
         setState({
           startTime: parsed.startTime,
           elapsed: parsed.elapsed + additionalTime,
-          isRunning: true
+          isRunning: true,
+          laps: parsed.laps || []
         });
       } else {
-        setState(parsed);
+        setState({ ...parsed, laps: parsed.laps || [] });
       }
     }
   }, [id]);
@@ -58,7 +60,7 @@ const useStopwatch = (id: string) => {
       localStorage.setItem(`stopwatch_${id}`, JSON.stringify({ ...state, lastTick: Date.now() }));
     }
     return () => clearInterval(interval);
-  }, [state.isRunning, state.startTime, id]);
+  }, [state.isRunning, state.startTime, id, state.laps]);
 
   const start = () => {
     if (!state.isRunning) {
@@ -77,11 +79,19 @@ const useStopwatch = (id: string) => {
   };
 
   const reset = () => {
-    setState({ startTime: 0, elapsed: 0, isRunning: false });
+    setState({ startTime: 0, elapsed: 0, isRunning: false, laps: [] });
     localStorage.removeItem(`stopwatch_${id}`);
   };
 
-  return { ...state, start, pause, reset };
+  const lap = () => {
+    const currentTotal = state.isRunning 
+        ? state.elapsed + (Date.now() - state.startTime) // Calculate exact moment if running
+        : state.elapsed;
+    
+    setState(prev => ({ ...prev, laps: [currentTotal, ...prev.laps] }));
+  };
+
+  return { ...state, start, pause, reset, lap };
 };
 
 // --- MINI BUBBLE COMPONENT ---
@@ -92,13 +102,17 @@ const MiniStopwatch = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (!visible && !isRunning) return null; // Hide if toggled off AND not running. 
-  // User req: "when toggle off then mini stopwatch will be hide" -> assuming completely hidden unless running logic overrides? 
-  // Sticking to strict toggle off = hide for now based on "toggle off then mini stopwatch will be hide".
+  // Auto-collapse if paused
+  useEffect(() => {
+    if (!isRunning) {
+        setIsExpanded(false);
+    }
+  }, [isRunning]);
+
   if (!visible) return null;
 
   return (
-    <div className={`fixed right-4 z-[60] transition-all duration-300 flex items-center justify-end gap-2 ${bottomOffset}`}>
+    <div className={`fixed right-4 z-[9990] transition-all duration-300 flex items-center justify-end gap-2 ${bottomOffset}`}>
       <AnimatePresence>
         {(isExpanded || isRunning) && (
           <motion.div 
@@ -116,7 +130,15 @@ const MiniStopwatch = ({
       </AnimatePresence>
 
       <button 
-        onClick={() => { onToggle(); setIsExpanded(!isExpanded); }}
+        onClick={() => { 
+            if (isRunning) onToggle(); // If running, click pauses (and effect collapses it)
+            else {
+                // If paused
+                setIsExpanded(!isExpanded); // Toggle view
+                if(!isExpanded) onToggle(); // Optional: Start on expand? User said "click on main... or mini... expand" -> usually play button starts it. 
+                // Keeping strict to: Toggle Play/Pause. Expansion logic handled by isRunning state mostly.
+            }
+        }}
         className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all border
           ${isRunning 
             ? 'bg-orange-500 border-orange-600 text-white animate-pulse' 
@@ -144,7 +166,18 @@ export default function DashboardPage() {
   const generalSW = useStopwatch('general');
   const newTaskSW = useStopwatch('newtask');
 
-  useEffect(() => setIsClient(true), []);
+  useEffect(() => {
+      setIsClient(true);
+      // Load Bubble Toggle Persistence
+      const savedBubbles = localStorage.getItem('show_stopwatch_bubbles');
+      if (savedBubbles) setShowBubbles(JSON.parse(savedBubbles));
+  }, []);
+
+  const toggleBubbles = () => {
+      const newState = !showBubbles;
+      setShowBubbles(newState);
+      localStorage.setItem('show_stopwatch_bubbles', JSON.stringify(newState));
+  };
 
   const formatTime = (ms: number) => {
     const s = Math.floor(ms / 1000);
@@ -177,7 +210,7 @@ export default function DashboardPage() {
 
       {/* Mini Stopwatches */}
       <MiniStopwatch 
-        label="General" 
+        label="Main" 
         time={formatTime(generalSW.elapsed)} 
         isRunning={generalSW.isRunning} 
         onToggle={generalSW.isRunning ? generalSW.pause : generalSW.start}
@@ -195,13 +228,11 @@ export default function DashboardPage() {
 
       <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-gray-200 dark:bg-[#050505] transition-colors duration-500 font-ubuntu">
         
-        {/* Background Blobs */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <div className="absolute top-10 left-[20%] w-96 h-96 bg-purple-500/20 dark:bg-purple-500/30 rounded-full blur-[100px] animate-blob" />
           <div className="absolute top-[40%] right-[20%] w-96 h-96 bg-cyan-500/20 dark:bg-cyan-500/30 rounded-full blur-[100px] animate-blob animation-delay-2000" />
         </div>
 
-        {/* Main Glass Container */}
         <motion.div 
           layout
           className="relative z-10 w-full max-w-[950px] h-[95vh] max-h-[850px] bg-white/40 dark:bg-black/40 backdrop-blur-2xl border border-white/50 dark:border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-2xl"
@@ -249,6 +280,7 @@ export default function DashboardPage() {
                          setGlobalTotal={setTotalDailyEntries} 
                        />
                      )}
+                     {/* Updated Props for Tracker */}
                      {activeApp === 'tracker' && (
                        <TrackerApp 
                          onClose={handleClose} 
@@ -256,7 +288,7 @@ export default function DashboardPage() {
                          newTaskSW={newTaskSW} 
                          formatTime={formatTime} 
                          showBubbles={showBubbles}
-                         setShowBubbles={setShowBubbles}
+                         toggleBubbles={toggleBubbles}
                        />
                      )}
                      {activeApp === 'updates' && (
