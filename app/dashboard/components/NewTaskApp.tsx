@@ -35,7 +35,6 @@ const LinkedInSection = ({ triggerConfirm }: { triggerConfirm: (msg: string, act
   const handleReset = () => { setTotalSales(''); setCurrentPage(''); };
 
   return (
-    // Color #0B66C3 and light accent #0B66C3/10
     <div className="bg-[#0B66C3]/10 border border-black/5 dark:border-white/10 rounded-2xl p-4 mb-3 backdrop-blur-md shadow-sm relative flex flex-col gap-3 w-full select-none">
       <div className="w-full flex justify-center items-center relative">
         <h3 className="font-bold text-[#0B66C3] text-base text-center">LinkedIn Sales Page Calculation</h3>
@@ -55,13 +54,9 @@ const LinkedInSection = ({ triggerConfirm }: { triggerConfirm: (msg: string, act
 
 const SentLinksSection = ({ total, setTotal, triggerConfirm, setLogs, onOpenLogs }: any) => {
   const [val, setVal] = useState<number | ''>('');
-  
-  // Persist input value
   useEffect(() => { const savedVal = localStorage.getItem('nt_self_draft_input'); if (savedVal) setVal(Number(savedVal)); }, []);
   useEffect(() => { localStorage.setItem('nt_self_draft_input', String(val)); }, [val]);
-
   const handleAdd = () => { const v = Number(val); if (!v || v <= 0) return; setTotal(total + v); setLogs((p:any) => [{ id: Date.now(), value: v, txt: `Added ${v} at ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}` }, ...p]); setVal(''); };
-  
   return (
     <div className="bg-[#0B66C3]/10 border border-black/5 dark:border-white/10 rounded-2xl p-4 mb-3 backdrop-blur-md shadow-sm flex items-center justify-between w-full gap-3 select-none">
       <div className="flex items-center gap-2 w-[180px]"><input type="number" placeholder="Enter" value={val} onChange={(e) => setVal(e.target.value === '' ? '' : Number(e.target.value))} onKeyDown={(e) => e.key === 'Enter' && handleAdd()} className="w-32 bg-white dark:bg-white/5 border border-[#0B66C3]/30 rounded-lg py-2 px-3 text-center font-bold text-gray-800 dark:text-white outline-none placeholder:font-normal placeholder:text-gray-400 no-spinner text-sm focus:border-[#0B66C3] transition-colors" /><button onClick={handleAdd} className="bg-[#0B66C3]/20 hover:bg-[#0B66C3]/30 text-[#0B66C3] border border-[#0B66C3]/30 p-2 rounded-lg transition-colors"><Check size={18} strokeWidth={3} /></button></div>
@@ -137,6 +132,7 @@ const OfficePage = ({ triggerConfirm, resetSignal }: { triggerConfirm: any, rese
 
   useEffect(() => { const savedTarget = localStorage.getItem('nt_office_target'); const savedInputs = localStorage.getItem('nt_office_inputs'); if (savedTarget) setTarget(Number(savedTarget)); if (savedInputs) setInputs(JSON.parse(savedInputs)); }, []);
   useEffect(() => { localStorage.setItem('nt_office_target', String(target)); localStorage.setItem('nt_office_inputs', JSON.stringify(inputs)); }, [target, inputs]);
+  useEffect(() => { if (resetSignal > 0) setInputs({}); }, [resetSignal]);
 
   const calculateTotals = () => { let sales = 0, search = 0; Object.entries(inputs).forEach(([key, val]) => { const num = parseInt(val) || 0; if (key.startsWith('sales')) sales += num; if (key.startsWith('search')) search += num; }); return { sales, search, officeTotal: sales + search }; };
   const { sales, search, officeTotal } = calculateTotals();
@@ -146,8 +142,8 @@ const OfficePage = ({ triggerConfirm, resetSignal }: { triggerConfirm: any, rese
   const sendToDiscord = async () => { setIsSending(true); setIsSent(false); const content = `Sent Links: **${officeTotal.toLocaleString()}**\n\nNeed to send more **${needed.toLocaleString()}** links to reach **${target/1000}k** Milestone`; const webhookURL = "https://discord.com/api/webhooks/1466497164157911042/Cxc4IR1RJ0idOh-ctI5pyHYnODdHo4Hpk30qn3L7edcv960mzkg62BIaA-N0xmlIyDzV"; try { await fetch(webhookURL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content }) }); setIsSending(false); setIsSent(true); setTimeout(() => setIsSent(false), 2000); } catch (e) { alert("Failed to send."); setIsSending(false); } };
 
   return (
-    <div className="space-y-4 h-full overflow-y-auto pr-1 pb-4 custom-scrollbar select-none">
-      <div className="bg-[#0B66C3]/10 border border-blue-200 dark:border-blue-500/20 rounded-2xl p-4 flex items-center justify-between">
+    <div className="h-full flex flex-col gap-3 select-none">
+      <div className="bg-[#0B66C3]/10 border border-blue-200 dark:border-blue-500/20 rounded-2xl p-4 flex items-center justify-between shrink-0">
          <div className="flex items-center gap-2 min-w-[200px]">
             <span className="font-bold text-[#0B66C3]">Targeted Value</span>
             <select value={target} onChange={(e) => setTarget(Number(e.target.value))} className="bg-white dark:bg-black/20 border border-[#0B66C3] rounded-full px-3 py-1 text-sm font-bold text-[#0B66C3] focus:outline-none cursor-pointer">
@@ -169,29 +165,31 @@ const OfficePage = ({ triggerConfirm, resetSignal }: { triggerConfirm: any, rese
          </div>
       </div>
 
-      <div className="bg-[#0B66C3]/10 border border-black/5 dark:border-white/10 rounded-2xl p-6 text-center shadow-sm">
+      <div className="bg-[#0B66C3]/10 border border-black/5 dark:border-white/10 rounded-2xl p-4 text-center shadow-sm shrink-0">
          <h3 className="text-xl font-bold text-gray-700 dark:text-white mb-1 tabular-nums">Sent Links: {officeTotal.toLocaleString()}</h3>
          <p className="text-red-500 font-medium text-sm tabular-nums">Need to send more <span className="font-bold text-red-600">{needed.toLocaleString()}</span> links to reach {target/1000}k Milestone</p>
       </div>
 
-      <div className="bg-[#0B66C3]/10 border border-black/5 dark:border-white/10 rounded-2xl p-4 shadow-sm">
-         <div className="grid grid-cols-[1fr_80px_1fr] gap-4 mb-4 text-center font-bold text-[#0B66C3] text-sm">
-            <div className="flex items-center justify-center gap-2">Sales <Compass size={14}/></div>
-            <div><Clock size={14} className="mx-auto"/></div>
-            <div className="flex items-center justify-center gap-2">Search <Search size={14}/></div>
+      {/* COMPACT 2-COLUMN GRID FOR HOURS */}
+      <div className="flex-1 bg-[#0B66C3]/10 border border-black/5 dark:border-white/10 rounded-2xl p-4 shadow-sm overflow-hidden flex flex-col">
+         <div className="grid grid-cols-2 gap-x-8 mb-2 text-center font-bold text-[#0B66C3] text-sm shrink-0">
+            <div className="grid grid-cols-[1fr_50px_1fr] gap-2"><span>Sales</span><span>Time</span><span>Search</span></div>
+            <div className="grid grid-cols-[1fr_50px_1fr] gap-2"><span>Sales</span><span>Time</span><span>Search</span></div>
          </div>
          
-         <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
-            {hours.map((time, i) => (
-               <div key={i} className="grid grid-cols-[1fr_80px_1fr] gap-4 items-center">
-                  <input type="number" value={inputs[`sales-${i}`] || ''} onChange={(e) => handleInput('sales', i, e.target.value)} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1 text-center outline-none focus:border-[#0B66C3] no-spinner tabular-nums text-gray-800 dark:text-white" />
-                  <div className="text-xs font-bold text-gray-500 dark:text-gray-400 text-center">{time}</div>
-                  <input type="number" value={inputs[`search-${i}`] || ''} onChange={(e) => handleInput('search', i, e.target.value)} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1 text-center outline-none focus:border-[#0B66C3] no-spinner tabular-nums text-gray-800 dark:text-white" />
-               </div>
-            ))}
+         <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+                {hours.map((time, i) => (
+                <div key={i} className="grid grid-cols-[1fr_50px_1fr] gap-2 items-center">
+                    <input type="number" value={inputs[`sales-${i}`] || ''} onChange={(e) => handleInput('sales', i, e.target.value)} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1 text-center outline-none focus:border-[#0B66C3] no-spinner tabular-nums text-gray-800 dark:text-white text-xs" />
+                    <div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 text-center">{time}</div>
+                    <input type="number" value={inputs[`search-${i}`] || ''} onChange={(e) => handleInput('search', i, e.target.value)} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1 text-center outline-none focus:border-[#0B66C3] no-spinner tabular-nums text-gray-800 dark:text-white text-xs" />
+                </div>
+                ))}
+            </div>
          </div>
 
-         <div className="grid grid-cols-[1fr_80px_1fr] gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-white/10">
+         <div className="grid grid-cols-[1fr_80px_1fr] gap-4 mt-2 pt-2 border-t border-gray-200 dark:border-white/10 shrink-0">
             <div className="bg-[#0B66C3]/10 text-center py-1 rounded-lg font-bold text-[#0B66C3] tabular-nums">{sales}</div>
             <div className="flex items-center justify-center gap-1 text-xs font-bold text-[#0B66C3]"><ArrowLeft size={10}/> Total <ArrowRight size={10}/></div>
             <div className="bg-[#0B66C3]/10 text-center py-1 rounded-lg font-bold text-[#0B66C3] tabular-nums">{search}</div>
@@ -222,7 +220,6 @@ export default function NewTaskApp({ onClose, totalSentLinks, setTotalSentLinks,
   return (
     <div className="h-full flex flex-col relative select-none">
       <div className="flex justify-center items-center gap-4 mb-3 shrink-0 relative">
-        {/* Colors #0B66C3 */}
         <button onClick={() => setActiveTab('self')} className={`flex items-center gap-2 px-6 py-2 rounded-full transition-all text-sm font-medium border ${activeTab === 'self' ? 'bg-[#0B66C3] border-[#0B66C3] text-white shadow-lg shadow-[#0B66C3]/20' : 'bg-white/20 dark:bg-white/5 border-transparent hover:bg-white/40 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400'}`}><User size={16} /> Self</button>
         <button onClick={() => setActiveTab('office')} className={`flex items-center gap-2 px-6 py-2 rounded-full transition-all text-sm font-medium border ${activeTab === 'office' ? 'bg-[#0B66C3] border-[#0B66C3] text-white shadow-lg shadow-[#0B66C3]/20' : 'bg-white/20 dark:bg-white/5 border-transparent hover:bg-white/40 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400'}`}><Building size={16} /> Office</button>
         <CloseButton onClick={onClose} />
