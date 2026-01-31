@@ -1,106 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaUser, FaKey, FaArrowRight } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-
-// --- CUSTOM HEXAGON PARTICLES COMPONENT ---
-const HexagonParticles = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-    let particles: any[] = [];
-
-    const createHexagon = (x: number, y: number, r: number) => {
-      ctx.beginPath();
-      for (let i = 0; i < 6; i++) {
-        ctx.lineTo(
-          x + r * Math.cos((Math.PI / 3) * i),
-          y + r * Math.sin((Math.PI / 3) * i)
-        );
-      }
-      ctx.closePath();
-    };
-
-    class Particle {
-      x: number; y: number; vx: number; vy: number; size: number; color: string;
-      constructor() {
-        this.x = Math.random() * width;
-        this.y = Math.random() * height;
-        this.vx = (Math.random() - 0.5) * 0.5;
-        this.vy = (Math.random() - 0.5) * 0.5;
-        this.size = Math.random() * 20 + 10;
-        this.color = `rgba(100, 100, 100, ${Math.random() * 0.1})`;
-      }
-      update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        if (this.x < -50) this.x = width + 50;
-        if (this.x > width + 50) this.x = -50;
-        if (this.y < -50) this.y = height + 50;
-        if (this.y > height + 50) this.y = -50;
-      }
-      draw() {
-        if(!ctx) return;
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = 1;
-        createHexagon(this.x, this.y, this.size);
-        ctx.stroke();
-      }
-    }
-
-    const init = () => {
-      particles = [];
-      for (let i = 0; i < 60; i++) particles.push(new Particle());
-    };
-
-    const animate = () => {
-      if(!ctx) return;
-      ctx.clearRect(0, 0, width, height);
-      
-      // Draw Connections
-      particles.forEach((p, index) => {
-        p.update();
-        p.draw();
-        for (let j = index + 1; j < particles.length; j++) {
-          const p2 = particles[j];
-          const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-          if (dist < 150) {
-            ctx.beginPath();
-            ctx.strokeStyle = `rgba(100,100,100,${0.1 - dist/1500})`;
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.stroke();
-          }
-        }
-      });
-      requestAnimationFrame(animate);
-    };
-
-    init();
-    animate();
-
-    const handleResize = () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-      init();
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  return <canvas ref={canvasRef} className="absolute inset-0 z-0 bg-gray-50 dark:bg-[#050505]" />;
-};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -126,10 +30,22 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-500 select-none">
+    <main className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-gray-50 dark:bg-[#050505] transition-colors duration-500 select-none">
       
-      {/* Hexagon Particles Background */}
-      <HexagonParticles />
+      {/* Background Image with Slow Rotation (Waving Effect) */}
+      <motion.div 
+        className="absolute inset-[-50%] z-0" // Negative inset to ensure coverage while rotating
+        animate={{ rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 200, ease: "linear" }}
+      >
+        <Image 
+          src="https://iili.io/fQF3kJI.jpg" 
+          alt="Background" 
+          fill 
+          className="object-cover opacity-30 dark:opacity-20 blur-sm scale-150" // Scale up to cover corners during rotation
+          priority
+        />
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -138,7 +54,7 @@ export default function LoginPage() {
         className="w-full max-w-[750px] max-h-[95vh] flex flex-col items-center justify-center relative z-10"
       >
         {/* Glass Container */}
-        <div className="w-full bg-white/60 dark:bg-black/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-2xl rounded-3xl p-8 md:p-12 overflow-y-auto">
+        <div className="w-full bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-2xl rounded-3xl p-8 md:p-12 overflow-y-auto">
           
           {/* Logo Section */}
           <motion.div 
