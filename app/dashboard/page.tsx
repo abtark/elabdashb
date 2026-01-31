@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import Image from "next/image";
@@ -69,55 +69,6 @@ const DigitalClock = () => {
     );
 };
 
-// --- CUSTOM HEXAGON PARTICLES ---
-const HexagonParticles = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-    let particles: any[] = [];
-    const createHexagon = (x: number, y: number, r: number) => {
-      ctx.beginPath();
-      for (let i = 0; i < 6; i++) { ctx.lineTo(x + r * Math.cos((Math.PI / 3) * i), y + r * Math.sin((Math.PI / 3) * i)); }
-      ctx.closePath();
-    };
-    class Particle {
-      x: number; y: number; vx: number; vy: number; size: number; color: string;
-      constructor() {
-        this.x = Math.random() * width; this.y = Math.random() * height;
-        this.vx = (Math.random() - 0.5) * 0.5; this.vy = (Math.random() - 0.5) * 0.5;
-        this.size = Math.random() * 20 + 10; this.color = `rgba(100, 100, 100, ${Math.random() * 0.1})`;
-      }
-      update() {
-        this.x += this.vx; this.y += this.vy;
-        if (this.x < -50) this.x = width + 50; if (this.x > width + 50) this.x = -50;
-        if (this.y < -50) this.y = height + 50; if (this.y > height + 50) this.y = -50;
-      }
-      draw() { if(!ctx) return; ctx.strokeStyle = this.color; ctx.lineWidth = 1; createHexagon(this.x, this.y, this.size); ctx.stroke(); }
-    }
-    const init = () => { particles = []; for (let i = 0; i < 60; i++) particles.push(new Particle()); };
-    const animate = () => {
-      if(!ctx) return; ctx.clearRect(0, 0, width, height);
-      particles.forEach((p, index) => {
-        p.update(); p.draw();
-        for (let j = index + 1; j < particles.length; j++) {
-          const p2 = particles[j]; const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-          if (dist < 150) { ctx.beginPath(); ctx.strokeStyle = `rgba(100,100,100,${0.1 - dist/1500})`; ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
-        }
-      });
-      requestAnimationFrame(animate);
-    };
-    init(); animate();
-    const handleResize = () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; init(); };
-    window.addEventListener("resize", handleResize); return () => window.removeEventListener("resize", handleResize);
-  }, []);
-  return <canvas ref={canvasRef} className="absolute inset-0 z-0 bg-gray-50 dark:bg-[#050505]" />;
-};
-
 export default function DashboardPage() {
   const { theme, setTheme } = useTheme();
   const [activeApp, setActiveApp] = useState<string | null>(null);
@@ -167,6 +118,11 @@ export default function DashboardPage() {
 
   const handleClose = () => { setActiveApp(null); localStorage.removeItem('dashboard_active_app'); };
 
+  // Determine Heading Color based on active app
+  const activeItem = menuItems.find(i => i.id === activeApp);
+  // Default to gray/white if no app active (Dashboard view)
+  const headingColor = activeItem ? activeItem.color : "text-gray-800 dark:text-white";
+
   if (!isClient) return null;
 
   return (
@@ -182,19 +138,32 @@ export default function DashboardPage() {
       <MiniStopwatch label="Main" time={formatTime(generalSW.elapsed)} isRunning={generalSW.isRunning} onToggle={generalSW.isRunning ? generalSW.pause : generalSW.start} bottomOffset="bottom-20" visible={showBubbles} />
       <MiniStopwatch label="NewTask" time={formatTime(newTaskSW.elapsed)} isRunning={newTaskSW.isRunning} onToggle={newTaskSW.isRunning ? newTaskSW.pause : newTaskSW.start} bottomOffset="bottom-4" visible={showBubbles} />
 
-      <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-500 font-ubuntu select-none">
+      <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-gray-200 dark:bg-[#050505] transition-colors duration-500 font-ubuntu select-none">
         
-        {/* Hexagon Particles */}
-        <HexagonParticles />
+        {/* Background Image with Slow Rotation (Waving Effect) */}
+        <motion.div 
+            className="absolute inset-[-50%] z-0" 
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 200, ease: "linear" }}
+        >
+            <Image 
+              src="https://iili.io/fQF3kJI.jpg" 
+              alt="Background" 
+              fill 
+              className="object-cover opacity-30 dark:opacity-20 blur-sm scale-150"
+              priority
+            />
+        </motion.div>
 
         <motion.div layout className="relative z-10 w-full max-w-[950px] h-[95vh] max-h-[850px] bg-white/40 dark:bg-black/40 backdrop-blur-2xl border border-white/50 dark:border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-2xl">
           
-          {/* Reduced Height Header - Removed splash animation */}
           <div className="flex items-center justify-between px-6 py-2 shrink-0 select-none">
-            <h1 className="text-xl font-bold tracking-tight text-gray-800 dark:text-white opacity-90 ml-2">
-               {activeApp ? menuItems.find(i => i.id === activeApp)?.label : "EntryLab Dashboard"}
+            {/* Dynamic Heading Color */}
+            <h1 className={`text-xl font-bold tracking-tight opacity-90 ml-2 transition-colors duration-300 ${headingColor}`}>
+               {activeItem ? activeItem.label : "EntryLab Dashboard"}
             </h1>
             <div className="flex items-center gap-4">
+               {/* No Splash, Just Logo */}
                <div className="relative w-28 h-28 drop-shadow-2xl">
                   <Image src="https://iili.io/FC3KC6g.png" alt="Logo" fill className="object-contain" priority />
                </div>
