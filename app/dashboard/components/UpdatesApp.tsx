@@ -13,7 +13,7 @@ const CloseButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
-const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => { if (!isOpen) return null; return <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"><motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center"><h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Confirmation</h3><p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p><div className="flex justify-center gap-4"><button onClick={onClose} className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">No</button><button onClick={() => { onConfirm(); onClose(); }} className="px-4 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition-colors">Yes</button></div></motion.div></div>; };
+const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => { if (!isOpen) return null; return <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"><motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center"><h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Confirmation</h3><p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p><div className="flex justify-center gap-4"><button onClick={onClose} className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white font-medium hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">No</button><button onClick={() => { onConfirm(); onClose(); }} className="px-4 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition-colors">Yes</button></div></motion.div></div>; };
 
 export default function UpdatesApp({ onClose, totalSentLinks, entriesCounts, mainHourDecimal, ntHourDecimal, onGlobalReset, resetSignal }: UpdatesAppProps) {
   const [otInput, setOtInput] = useState<string>('');
@@ -45,14 +45,13 @@ export default function UpdatesApp({ onClose, totalSentLinks, entriesCounts, mai
   const handleCopyOT = () => { navigator.clipboard.writeText(otHourValue.toFixed(2)); setOtCopied(true); setTimeout(() => setOtCopied(false), 1500); };
 
   return (
-    <div className="h-full flex flex-col relative gap-3 w-full px-2 font-ubuntu">
+    <div className="h-full flex flex-col relative gap-3 w-full px-2 font-ubuntu select-none">
       <div className="relative flex justify-center items-center shrink-0 min-h-[40px]">
-         {/* UPDATED: Background Color #18B0FE */}
          <div className="px-6 py-2 rounded-full bg-[#18B0FE] text-white font-medium text-sm shadow-lg cursor-default flex items-center gap-2"><Zap size={16} fill="currentColor" /> ELab Updates</div>
          <CloseButton onClick={onClose} />
       </div>
 
-      <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-3 flex justify-between items-center text-xs sm:text-sm font-bold shadow-sm backdrop-blur-md shrink-0">
+      <div className="bg-[#01ABFF]/10 border border-white/20 dark:border-white/10 rounded-2xl p-3 flex justify-between items-center text-xs sm:text-sm font-bold shadow-sm backdrop-blur-md shrink-0">
          <div className="flex items-center gap-2"><span className="text-gray-600 dark:text-gray-300">Sent Links:</span><span className="bg-blue-100/50 dark:bg-blue-500/10 px-2 py-0.5 rounded text-blue-600 dark:text-blue-400">{totalSentLinks}</span></div>
          <div className="h-4 w-px bg-gray-300 dark:bg-white/10"></div>
          <div className="flex items-center gap-2"><span className="text-gray-600 dark:text-gray-300">Total Entry:</span><span className="bg-green-100/50 dark:bg-green-500/10 px-2 py-0.5 rounded text-green-600 dark:text-green-400">{totalEntries}</span></div>
@@ -65,10 +64,10 @@ export default function UpdatesApp({ onClose, totalSentLinks, entriesCounts, mai
          <div className="flex-1 bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-3 text-center shadow-sm"><div className="text-[10px] font-bold mb-1 flex items-center justify-center gap-1 text-gray-500 dark:text-gray-400 uppercase tracking-wider"><Hourglass size={10}/> NewTask Hour</div><div className="text-2xl font-bold text-gray-800 dark:text-white tabular-nums">{ntHourDecimal.toFixed(2)}</div></div>
       </div>
 
-      <div className="bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-3 flex items-center justify-between shadow-sm gap-4 shrink-0 h-20">
-         <input type="number" placeholder="Enter General Hour" value={otInput} onChange={(e) => { const val = parseFloat(e.target.value); if (val >= 0 || e.target.value === '') setOtInput(e.target.value); }} className="w-48 bg-white/60 dark:bg-black/20 border border-gray-300 dark:border-gray-600 rounded-xl px-4 h-11 text-center outline-none focus:ring-2 focus:ring-blue-400/50 no-spinner font-medium text-lg placeholder:text-sm placeholder:font-normal placeholder:text-gray-400 text-gray-800 dark:text-white" />
+      <div className="bg-[#01ABFF]/10 border border-white/20 dark:border-white/10 rounded-2xl p-3 flex items-center justify-between shadow-sm gap-4 shrink-0 h-20">
+         <input type="number" placeholder="Enter General Hour" value={otInput} onChange={(e) => { const val = parseFloat(e.target.value); if (val >= 0 || e.target.value === '') setOtInput(e.target.value); }} className="w-48 bg-white/60 dark:bg-black/20 border border-gray-300 dark:border-gray-600 rounded-xl px-4 h-11 text-center outline-none focus:ring-2 focus:ring-[#01ABFF]/50 no-spinner font-medium text-lg placeholder:text-sm placeholder:font-normal placeholder:text-gray-400 text-gray-800 dark:text-white" />
          
-         <div className="flex-1 flex items-center justify-center gap-2 min-w-[140px] text-blue-600 dark:text-blue-400"><span className="text-2xl font-bold uppercase tracking-wide">OT Hour:</span><span className="text-2xl font-bold tabular-nums min-w-[60px] text-left">{otHourValue.toFixed(2)}</span></div>
+         <div className="flex-1 flex items-center justify-center gap-2 min-w-[140px] text-[#01ABFF]"><span className="text-2xl font-bold uppercase tracking-wide">OT Hour:</span><span className="text-2xl font-bold tabular-nums min-w-[60px] text-left">{otHourValue.toFixed(2)}</span></div>
          <button onClick={handleCopyOT} className="w-32 flex items-center justify-center gap-2 bg-transparent border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white hover:bg-black/5 dark:hover:bg-white/10 px-4 h-11 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 shrink-0">{otCopied ? <Check size={16}/> : <Copy size={16}/>}{otCopied ? 'Copied' : 'Copy OT'}</button>
       </div>
 
