@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Ubuntu } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./providers"; // We will create this
+import { Analytics } from "@vercel/analytics/next";
 
 const ubuntu = Ubuntu({ 
   subsets: ["latin"],
@@ -24,6 +25,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           {children}
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
