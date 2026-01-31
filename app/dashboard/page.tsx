@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 import Image from "next/image";
 import { 
   CheckSquare, Table, Clock, Zap, Coffee, Sun, Moon, 
-  Play, Pause 
+  Play, Pause, Compass // Changed to Compass for Sales Nav
 } from "lucide-react";
 
 import Sidebar from "./components/Sidebar";
@@ -62,11 +62,7 @@ const useStopwatch = (id: string) => {
 
   const start = () => {
     if (!state.isRunning) {
-      setState(prev => ({
-        ...prev,
-        startTime: Date.now() - prev.elapsed,
-        isRunning: true
-      }));
+      setState(prev => ({ ...prev, startTime: Date.now() - prev.elapsed, isRunning: true }));
     }
   };
 
@@ -96,54 +92,20 @@ const useStopwatch = (id: string) => {
   return { ...state, start, pause, reset, lap, deleteLap };
 };
 
-const MiniStopwatch = ({ 
-  label, time, isRunning, onToggle, bottomOffset, visible
-}: { 
-  label: string, time: string, isRunning: boolean, onToggle: () => void, bottomOffset: string, visible: boolean
-}) => {
+const MiniStopwatch = ({ label, time, isRunning, onToggle, bottomOffset, visible }: any) => {
   const [isExpanded, setIsExpanded] = useState(false);
-
-  useEffect(() => {
-    if (!isRunning) setIsExpanded(false);
-  }, [isRunning]);
-
+  useEffect(() => { if (!isRunning) setIsExpanded(false); }, [isRunning]);
   if (!visible) return null;
-
   return (
     <div className={`fixed right-4 z-[9990] transition-all duration-300 flex items-center justify-end gap-2 ${bottomOffset}`}>
       <AnimatePresence>
         {(isExpanded || isRunning) && (
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            className="bg-white/90 dark:bg-black/80 backdrop-blur-md border border-gray-200 dark:border-gray-800 rounded-full pl-4 pr-1 py-1 shadow-xl flex items-center gap-3"
-          >
-            <div className="flex flex-col leading-none">
-              <span className="text-[10px] uppercase font-bold text-gray-500">{label}</span>
-              <span className="font-mono font-bold text-gray-800 dark:text-white">{time}</span>
-            </div>
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="bg-white/90 dark:bg-black/80 backdrop-blur-md border border-gray-200 dark:border-gray-800 rounded-full pl-4 pr-1 py-1 shadow-xl flex items-center gap-3">
+            <div className="flex flex-col leading-none"><span className="text-[10px] uppercase font-bold text-gray-500">{label}</span><span className="font-mono font-bold text-gray-800 dark:text-white">{time}</span></div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      <button 
-        onClick={() => { 
-            if (isRunning) onToggle(); 
-            else {
-                setIsExpanded(!isExpanded); 
-                if(!isExpanded) onToggle();
-            }
-        }}
-        className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all border
-          ${isRunning 
-            ? 'bg-orange-500 border-orange-600 text-white animate-pulse' 
-            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-green-500 hover:scale-110'
-          }
-        `}
-      >
-        {isRunning ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-1" />}
-      </button>
+      <button onClick={() => { if (isRunning) onToggle(); else { setIsExpanded(!isExpanded); if(!isExpanded) onToggle(); } }} className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all border ${isRunning ? 'bg-orange-500 border-orange-600 text-white animate-pulse' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-green-500 hover:scale-110'}`}>{isRunning ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-1" />}</button>
     </div>
   );
 };
@@ -151,7 +113,6 @@ const MiniStopwatch = ({
 const DigitalClock = () => {
     const [time, setTime] = useState<string>("");
     const [date, setDate] = useState<string>("");
-
     useEffect(() => {
         const update = () => {
             const now = new Date();
@@ -164,33 +125,22 @@ const DigitalClock = () => {
         const interval = setInterval(update, 1000);
         return () => clearInterval(interval);
     }, []);
-
     return (
-        <div className="flex flex-col items-center justify-center gap-4 text-center animate-fade-in">
-             <div className="text-6xl md:text-8xl font-mono font-bold text-gray-800 dark:text-white tracking-widest tabular-nums select-none drop-shadow-sm">
-                {time || "--:--:--"}
-             </div>
-             <div className="text-xl md:text-3xl font-medium text-gray-500 dark:text-gray-400">
-                {date || "Loading..."}
-             </div>
+        <div className="flex flex-col items-center justify-center gap-4 text-center animate-fade-in select-none">
+             <div className="text-6xl md:text-8xl font-mono font-bold text-gray-800 dark:text-white tracking-widest tabular-nums drop-shadow-sm">{time || "--:--:--"}</div>
+             <div className="text-xl md:text-3xl font-medium text-gray-500 dark:text-gray-400">{date || "Loading..."}</div>
         </div>
     );
 };
 
 export default function DashboardPage() {
   const { theme, setTheme } = useTheme();
-  
   const [activeApp, setActiveApp] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
-  
   const [totalSentLinks, setTotalSentLinks] = useState(0);
-  const [entriesCounts, setEntriesCounts] = useState<Record<string, number>>({
-    cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0
-  });
-
+  const [entriesCounts, setEntriesCounts] = useState<Record<string, number>>({ cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0 });
   const [showBubbles, setShowBubbles] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
-
   const generalSW = useStopwatch('general');
   const newTaskSW = useStopwatch('newtask');
 
@@ -206,68 +156,32 @@ export default function DashboardPage() {
       if (savedEntries) setEntriesCounts(JSON.parse(savedEntries));
   }, []);
 
-  useEffect(() => {
-    if (isClient) {
-        if(activeApp) localStorage.setItem('dashboard_active_app', activeApp);
-        else localStorage.removeItem('dashboard_active_app');
-    }
-  }, [activeApp, isClient]);
+  useEffect(() => { if (isClient) { if(activeApp) localStorage.setItem('dashboard_active_app', activeApp); else localStorage.removeItem('dashboard_active_app'); } }, [activeApp, isClient]);
+  useEffect(() => { if (isClient) localStorage.setItem('global_total_sent_links', JSON.stringify(totalSentLinks)); }, [totalSentLinks, isClient]);
+  useEffect(() => { if (isClient) localStorage.setItem('global_entries_counts', JSON.stringify(entriesCounts)); }, [entriesCounts, isClient]);
 
-  useEffect(() => {
-      if (isClient) localStorage.setItem('global_total_sent_links', JSON.stringify(totalSentLinks));
-  }, [totalSentLinks, isClient]);
-
-  useEffect(() => {
-      if (isClient) localStorage.setItem('global_entries_counts', JSON.stringify(entriesCounts));
-  }, [entriesCounts, isClient]);
-
-  const toggleBubbles = () => {
-      const newState = !showBubbles;
-      setShowBubbles(newState);
-      localStorage.setItem('show_stopwatch_bubbles', JSON.stringify(newState));
-  };
-
+  const toggleBubbles = () => { const newState = !showBubbles; setShowBubbles(newState); localStorage.setItem('show_stopwatch_bubbles', JSON.stringify(newState)); };
   const handleGlobalReset = () => {
       setTotalSentLinks(0);
       setEntriesCounts({ cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0 });
-      generalSW.reset();
-      newTaskSW.reset(); 
-      localStorage.removeItem('global_total_sent_links');
-      localStorage.removeItem('global_entries_counts');
-      localStorage.removeItem('dailyEntryLogs');
-      localStorage.removeItem('dailyEntryCounts');
-      localStorage.removeItem('nt_self_sent_links_logs'); 
+      generalSW.reset(); newTaskSW.reset(); 
+      localStorage.removeItem('global_total_sent_links'); localStorage.removeItem('global_entries_counts'); localStorage.removeItem('dailyEntryLogs'); localStorage.removeItem('dailyEntryCounts'); localStorage.removeItem('nt_self_sent_links_logs'); 
       setResetSignal(prev => prev + 1); 
   };
 
-  const formatTime = (ms: number) => {
-    const s = Math.floor(ms / 1000);
-    const m = Math.floor(s / 60);
-    const h = Math.floor(m / 60);
-    return `${h.toString().padStart(2, '0')}:${(m % 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
-  };
+  const formatTime = (ms: number) => { const s = Math.floor(ms / 1000); const m = Math.floor(s / 60); const h = Math.floor(m / 60); return `${h.toString().padStart(2, '0')}:${(m % 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`; };
+  const getHourDecimal = (ms: number) => { const totalMinutes = Math.floor(ms / 60000); const hours = Math.floor(totalMinutes / 60); const minutes = totalMinutes % 60; return hours + (minutes / 60); };
 
-  const getHourDecimal = (ms: number) => {
-      const totalMinutes = Math.floor(ms / 60000); 
-      const hours = Math.floor(totalMinutes / 60);
-      const minutes = totalMinutes % 60;
-      return hours + (minutes / 60);
-  };
-
-  // --- UPDATED MENU COLORS ---
+  // --- UPDATED COLORS & ICONS ---
   const menuItems = [
-    { id: 'newtask', icon: CheckSquare, label: 'NewTask Updates', color: 'text-[#5865F2]', bgColor: 'bg-[#5865F2]' },
+    { id: 'newtask', icon: Compass, label: 'NewTask Updates', color: 'text-[#0B66C3]', bgColor: 'bg-[#0B66C3]' }, // Compass Icon & #0B66C3
     { id: 'entries', icon: Table, label: 'Daily Entry Counts', color: 'text-green-500', bgColor: 'bg-green-500' },
     { id: 'tracker', icon: Clock, label: 'Tracker', color: 'text-orange-500', bgColor: 'bg-orange-500' },
-    // Updated Updates Color: #18B0FE
-    { id: 'updates', icon: Zap, label: 'Updates', color: 'text-[#18B0FE]', bgColor: 'bg-[#18B0FE]' },
-    { id: 'snacks', icon: Coffee, label: 'Food & Beverage', color: 'text-[#6F4E37]', bgColor: 'bg-[#6F4E37]' },
+    { id: 'updates', icon: Zap, label: 'Updates', color: 'text-[#18B0FE]', bgColor: 'bg-[#18B0FE]' }, // Updates #18B0FE
+    { id: 'snacks', icon: Coffee, label: 'Food & Beverage', color: 'text-[#9E2A3A]', bgColor: 'bg-[#9E2A3A]' }, // Snacks #9E2A3A
   ];
 
-  const handleClose = () => {
-    setActiveApp(null);
-    localStorage.removeItem('dashboard_active_app'); 
-  };
+  const handleClose = () => { setActiveApp(null); localStorage.removeItem('dashboard_active_app'); };
 
   if (!isClient) return null;
 
@@ -284,7 +198,7 @@ export default function DashboardPage() {
       <MiniStopwatch label="Main" time={formatTime(generalSW.elapsed)} isRunning={generalSW.isRunning} onToggle={generalSW.isRunning ? generalSW.pause : generalSW.start} bottomOffset="bottom-20" visible={showBubbles} />
       <MiniStopwatch label="NewTask" time={formatTime(newTaskSW.elapsed)} isRunning={newTaskSW.isRunning} onToggle={newTaskSW.isRunning ? newTaskSW.pause : newTaskSW.start} bottomOffset="bottom-4" visible={showBubbles} />
 
-      <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-gray-200 dark:bg-[#050505] transition-colors duration-500 font-ubuntu">
+      <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-gray-200 dark:bg-[#050505] transition-colors duration-500 font-ubuntu select-none">
         
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <div className="absolute top-10 left-[20%] w-96 h-96 bg-purple-500/20 dark:bg-purple-500/30 rounded-full blur-[100px] animate-blob" />
@@ -298,9 +212,15 @@ export default function DashboardPage() {
                {activeApp ? menuItems.find(i => i.id === activeApp)?.label : "EntryLab Dashboard"}
             </h1>
             <div className="flex items-center gap-6">
-               <div className="relative w-28 h-28 drop-shadow-2xl">
+               {/* Dashboard Logo - Increased size & Added Splash Animation */}
+               <motion.div 
+                 initial={{ scale: 0, rotate: -180 }}
+                 animate={{ scale: 1, rotate: 0 }}
+                 transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                 className="relative w-36 h-36 drop-shadow-2xl"
+               >
                   <Image src="https://iili.io/FC3KC6g.png" alt="Logo" fill className="object-contain" priority />
-               </div>
+               </motion.div>
                <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="p-3 rounded-full bg-white/20 dark:bg-white/5 hover:bg-white/40 transition-colors text-gray-800 dark:text-white">
                  {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
                </button>
@@ -313,7 +233,7 @@ export default function DashboardPage() {
             <div className="flex-1 relative overflow-hidden bg-white/20 dark:bg-transparent backdrop-blur-sm">
               <AnimatePresence mode="wait">
                 {activeApp ? (
-                  <motion.div key={activeApp} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }} transition={{ duration: 0.2 }} className="h-full w-full flex flex-col p-6 pt-6">
+                  <motion.div key={activeApp} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="h-full w-full flex flex-col p-6 pt-6">
                      {activeApp === 'newtask' && <NewTaskApp onClose={handleClose} totalSentLinks={totalSentLinks} setTotalSentLinks={setTotalSentLinks} resetSignal={resetSignal} />}
                      {activeApp === 'entries' && <EntriesApp onClose={handleClose} counts={entriesCounts} setCounts={setEntriesCounts} resetSignal={resetSignal} />}
                      {activeApp === 'tracker' && <TrackerApp onClose={handleClose} generalSW={generalSW} newTaskSW={newTaskSW} formatTime={formatTime} showBubbles={showBubbles} toggleBubbles={toggleBubbles} />}
