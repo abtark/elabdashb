@@ -16,6 +16,42 @@ import TrackerApp from "./components/TrackerApp";
 import UpdatesApp from "./components/UpdatesApp";
 import SnacksApp from "./components/SnacksApp";
 
+const FloatingShapes = () => {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => { setIsClient(true); }, []);
+  if (!isClient) return null;
+
+  const colors = ["bg-blue-500", "bg-purple-500", "bg-pink-500", "bg-orange-500", "bg-cyan-500", "bg-green-500"];
+  const shapes = Array.from({ length: 15 }).map((_, i) => ({
+    id: i,
+    size: Math.random() * 100 + 50, 
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    duration: Math.random() * 20 + 10,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    delay: Math.random() * 5
+  }));
+
+  return (
+    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-gray-100 dark:bg-[#050505]">
+      {shapes.map((shape) => (
+        <motion.div
+          key={shape.id}
+          className={`absolute rounded-full opacity-30 dark:opacity-20 blur-xl ${shape.color}`}
+          initial={{ width: shape.size, height: shape.size, x: `${shape.x}vw`, y: `${shape.y}vh` }}
+          animate={{ 
+            x: [`${shape.x}vw`, `${Math.random() * 100}vw`, `${Math.random() * 100}vw`],
+            y: [`${shape.y}vh`, `${Math.random() * 100}vh`, `${Math.random() * 100}vh`],
+            scale: [1, 1.2, 0.8, 1],
+            rotate: [0, 180, 360]
+          }}
+          transition={{ duration: shape.duration, repeat: Infinity, repeatType: "reverse", ease: "linear", delay: shape.delay }}
+        />
+      ))}
+    </div>
+  );
+};
+
 const useStopwatch = (id: string) => {
   const [state, setState] = useState({ startTime: 0, elapsed: 0, isRunning: false, laps: [] as number[] });
   useEffect(() => { const saved = localStorage.getItem(`stopwatch_${id}`); if (saved) { const parsed = JSON.parse(saved); if (parsed.isRunning) { const now = Date.now(); const additionalTime = now - parsed.lastTick; setState({ startTime: parsed.startTime, elapsed: parsed.elapsed + additionalTime, isRunning: true, laps: parsed.laps || [] }); } else { setState({ ...parsed, laps: parsed.laps || [] }); } } }, [id]);
@@ -118,9 +154,7 @@ export default function DashboardPage() {
 
   const handleClose = () => { setActiveApp(null); localStorage.removeItem('dashboard_active_app'); };
 
-  // Determine Heading Color based on active app
   const activeItem = menuItems.find(i => i.id === activeApp);
-  // Default to gray/white if no app active (Dashboard view)
   const headingColor = activeItem ? activeItem.color : "text-gray-800 dark:text-white";
 
   if (!isClient) return null;
@@ -138,32 +172,17 @@ export default function DashboardPage() {
       <MiniStopwatch label="Main" time={formatTime(generalSW.elapsed)} isRunning={generalSW.isRunning} onToggle={generalSW.isRunning ? generalSW.pause : generalSW.start} bottomOffset="bottom-20" visible={showBubbles} />
       <MiniStopwatch label="NewTask" time={formatTime(newTaskSW.elapsed)} isRunning={newTaskSW.isRunning} onToggle={newTaskSW.isRunning ? newTaskSW.pause : newTaskSW.start} bottomOffset="bottom-4" visible={showBubbles} />
 
-      <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-gray-200 dark:bg-[#050505] transition-colors duration-500 font-ubuntu select-none">
+      <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-500 font-ubuntu select-none">
         
-        {/* Background Image with Slow Rotation (Waving Effect) */}
-        <motion.div 
-            className="absolute inset-[-50%] z-0" 
-            animate={{ rotate: 360 }}
-            transition={{ repeat: Infinity, duration: 200, ease: "linear" }}
-        >
-            <Image 
-              src="https://iili.io/fQF3kJI.jpg" 
-              alt="Background" 
-              fill 
-              className="object-cover opacity-30 dark:opacity-20 blur-sm scale-150"
-              priority
-            />
-        </motion.div>
+        <FloatingShapes />
 
-        <motion.div layout className="relative z-10 w-full max-w-[950px] h-[95vh] max-h-[850px] bg-white/40 dark:bg-black/40 backdrop-blur-2xl border border-white/50 dark:border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-2xl">
+        <motion.div layout className="relative z-10 w-full max-w-[950px] h-[95vh] max-h-[850px] bg-white/10 dark:bg-black/20 backdrop-blur-3xl border border-white/20 dark:border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]">
           
           <div className="flex items-center justify-between px-6 py-2 shrink-0 select-none">
-            {/* Dynamic Heading Color */}
             <h1 className={`text-xl font-bold tracking-tight opacity-90 ml-2 transition-colors duration-300 ${headingColor}`}>
                {activeItem ? activeItem.label : "EntryLab Dashboard"}
             </h1>
             <div className="flex items-center gap-4">
-               {/* No Splash, Just Logo */}
                <div className="relative w-28 h-28 drop-shadow-2xl">
                   <Image src="https://iili.io/FC3KC6g.png" alt="Logo" fill className="object-contain" priority />
                </div>
