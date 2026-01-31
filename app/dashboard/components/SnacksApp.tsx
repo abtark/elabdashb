@@ -59,7 +59,6 @@ export default function SnacksApp({ onClose }: { onClose: () => void }) {
   return (
     <div className="h-full flex flex-col relative gap-3 font-ubuntu select-none">
       <div className="flex justify-center items-center gap-4 shrink-0 relative min-h-[40px]">
-        {/* Colors #9E2A3A */}
         <button onClick={() => setActiveTab('person')} className={`flex items-center gap-2 px-6 py-2 rounded-full text-sm font-medium border transition-all ${activeTab === 'person' ? 'bg-[#9E2A3A] border-[#9E2A3A] text-white shadow-md' : 'bg-white/20 border-transparent text-gray-600 dark:text-gray-400 hover:bg-white/30'}`}><User size={16} /> Person</button>
         <button onClick={() => setActiveTab('snacks')} className={`flex items-center gap-2 px-6 py-2 rounded-full text-sm font-medium border transition-all ${activeTab === 'snacks' ? 'bg-[#9E2A3A] border-[#9E2A3A] text-white shadow-md' : 'bg-white/20 border-transparent text-gray-600 dark:text-gray-400 hover:bg-white/30'}`}><Coffee size={16} /> Snacks</button>
         <CloseButton onClick={onClose} />
@@ -68,12 +67,11 @@ export default function SnacksApp({ onClose }: { onClose: () => void }) {
       <div className="flex-1 overflow-hidden">
         {activeTab === 'person' ? (
           <div className="h-full flex flex-col gap-3 max-w-[95%] mx-auto">
-             <div className="flex items-center justify-around bg-[#9E2A3A]/10 border border-white/20 dark:border-white/10 rounded-2xl p-2 shadow-sm backdrop-blur-md text-center shrink-0">
-                <div><div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Total</div><div className="text-lg font-bold text-blue-600 dark:text-blue-400 leading-none">{totalPersons}</div></div>
-                <div className="w-px h-6 bg-gray-300 dark:bg-white/10"></div>
-                <div><div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">No Snack</div><div className="text-lg font-bold text-red-500 leading-none">{noSnackCount}</div></div>
-                <div className="w-px h-6 bg-gray-300 dark:bg-white/10"></div>
-                <div><div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Taking</div><div className="text-lg font-bold text-green-500 leading-none">{takingCount}</div></div>
+             <div className="flex items-center justify-around bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-2 shadow-sm backdrop-blur-md text-center shrink-0">
+                {/* Specific Colors for Stats */}
+                <div className="bg-blue-100/50 dark:bg-blue-900/20 px-4 py-2 rounded-xl"><div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Total</div><div className="text-lg font-bold text-blue-600 dark:text-blue-400 leading-none">{totalPersons}</div></div>
+                <div className="bg-red-100/50 dark:bg-red-900/20 px-4 py-2 rounded-xl"><div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">No Snack</div><div className="text-lg font-bold text-red-500 leading-none">{noSnackCount}</div></div>
+                <div className="bg-green-100/50 dark:bg-green-900/20 px-4 py-2 rounded-xl"><div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Taking</div><div className="text-lg font-bold text-green-500 leading-none">{takingCount}</div></div>
              </div>
              <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 pb-2">
                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -91,8 +89,9 @@ export default function SnacksApp({ onClose }: { onClose: () => void }) {
           </div>
         ) : (
           <div className="h-full flex flex-col gap-4 max-w-[95%] mx-auto overflow-hidden">
-            <div className="flex-1 bg-[#9E2A3A]/10 border border-white/20 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm backdrop-blur-md flex flex-col">
-               <div className="grid grid-cols-[80px_1fr_1fr] bg-[#9E2A3A]/20 dark:bg-white/5 border-b border-white/20 dark:border-white/10 text-xs font-bold text-gray-600 dark:text-gray-300 text-center py-3 shrink-0"><div>Day</div><div>Morning</div><div>Evening</div></div>
+            {/* Reverted Background to Standard Light/Dark */}
+            <div className="flex-1 bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm backdrop-blur-md flex flex-col">
+               <div className="grid grid-cols-[80px_1fr_1fr] bg-gray-50/80 dark:bg-white/5 border-b border-gray-200 dark:border-white/10 text-xs font-bold text-gray-600 dark:text-gray-300 text-center py-3 shrink-0"><div>Day</div><div>Morning</div><div>Evening</div></div>
                <div className="flex-1 overflow-y-auto custom-scrollbar">
                   {snackRows.map((row, index) => {
                      const isSelectedMorning = selectedSlot?.dayIndex === index && selectedSlot.type === 'morning'; const isSelectedEvening = selectedSlot?.dayIndex === index && selectedSlot.type === 'evening'; const isToday = index === todayRowIndex;
