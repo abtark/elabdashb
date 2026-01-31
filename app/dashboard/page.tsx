@@ -135,10 +135,9 @@ export default function DashboardPage() {
 
       <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-gray-200 dark:bg-[#050505] transition-colors duration-500 font-ubuntu select-none">
         
-        {/* Updated Dashboard Background Image */}
         <div className="absolute inset-0 z-0">
             <Image 
-              src="https://cdn.pixabay.com/photo/2022/07/26/05/28/circles-7345110_1280.jpg" 
+              src="/image_d82db7.jpg" 
               alt="Background" 
               fill 
               className="object-cover opacity-30 dark:opacity-20 blur-sm"
@@ -148,30 +147,18 @@ export default function DashboardPage() {
 
         <motion.div layout className="relative z-10 w-full max-w-[950px] h-[95vh] max-h-[850px] bg-white/40 dark:bg-black/40 backdrop-blur-2xl border border-white/50 dark:border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-2xl">
           
-          {/* Reduced padding top (pt-2) to fix height */}
-          <div className="flex items-center justify-between px-6 pt-2 pb-0 shrink-0 select-none">
+          {/* Reduced Height Header: py-1 */}
+          <div className="flex items-center justify-between px-6 py-1 shrink-0 select-none">
             <h1 className="text-xl font-bold tracking-tight text-gray-800 dark:text-white opacity-90 ml-2">
                {activeApp ? menuItems.find(i => i.id === activeApp)?.label : "EntryLab Dashboard"}
             </h1>
-            <div className="flex items-center gap-6">
-               {/* Shine Animation Logo */}
-               <motion.div 
-                 initial={{ opacity: 0, scale: 0.8 }}
-                 animate={{ opacity: 1, scale: 1 }}
-                 transition={{ duration: 0.5 }}
-                 className="relative w-28 h-28 drop-shadow-2xl overflow-hidden rounded-full"
-               >
-                  <Image src="https://iili.io/FC3KC6g.png" alt="Logo" fill className="object-contain relative z-10" priority />
-                  {/* Shine Effect Overlay */}
-                  <motion.div 
-                    initial={{ x: '-100%' }}
-                    animate={{ x: '100%' }}
-                    transition={{ repeat: Infinity, duration: 2, ease: "linear", repeatDelay: 3 }}
-                    className="absolute inset-0 z-20 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12"
-                  />
-               </motion.div>
-               <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="p-3 rounded-full bg-white/20 dark:bg-white/5 hover:bg-white/40 transition-colors text-gray-800 dark:text-white">
-                 {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            <div className="flex items-center gap-4">
+               {/* No Splash Animation */}
+               <div className="relative w-28 h-28 drop-shadow-2xl">
+                  <Image src="https://iili.io/FC3KC6g.png" alt="Logo" fill className="object-contain" priority />
+               </div>
+               <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="p-2 rounded-full bg-white/20 dark:bg-white/5 hover:bg-white/40 transition-colors text-gray-800 dark:text-white">
+                 {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
                </button>
             </div>
           </div>
