@@ -76,8 +76,18 @@ const EmailManagerSection = ({ triggerAlert, triggerConfirm }: any) => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editValue, setEditValue] = useState("");
     
-    useEffect(() => { const saved = localStorage.getItem('newTaskEmails'); if (saved) setEmails(JSON.parse(saved)); }, []);
-    useEffect(() => { localStorage.setItem('newTaskEmails', JSON.stringify(emails)); }, [emails]);
+    // FIX: Proper persistence loading
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    useEffect(() => { 
+        const saved = localStorage.getItem('newTaskEmails'); 
+        if (saved) setEmails(JSON.parse(saved)); 
+        setIsLoaded(true);
+    }, []);
+
+    useEffect(() => { 
+        if (isLoaded) localStorage.setItem('newTaskEmails', JSON.stringify(emails)); 
+    }, [emails, isLoaded]);
   
     const ITEMS_PER_PAGE = 5; const LIMIT = 30; const PAGES = ['A', 'B', 'C', 'D', 'E', 'F']; 
     const startIndex = pageIndex * ITEMS_PER_PAGE; const currentEmails = emails.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -136,10 +146,9 @@ const OfficePage = ({ triggerConfirm, resetSignal }: { triggerConfirm: any, rese
 
   const calculateTotals = () => { let sales = 0, search = 0; Object.entries(inputs).forEach(([key, val]) => { const num = parseInt(val) || 0; if (key.startsWith('sales')) sales += num; if (key.startsWith('search')) search += num; }); return { sales, search, officeTotal: sales + search }; };
   const { sales, search, officeTotal } = calculateTotals();
-  const needed = Math.max(0, target - officeTotal);
   const handleInput = (type: 'sales' | 'search', index: number, val: string) => { setInputs(prev => ({ ...prev, [`${type}-${index}`]: val })); };
 
-  const sendToDiscord = async () => { setIsSending(true); setIsSent(false); const content = `Sent Links: **${officeTotal.toLocaleString()}**\n\nNeed to send more **${needed.toLocaleString()}** links to reach **${target/1000}k** Milestone`; const webhookURL = "https://discord.com/api/webhooks/1466497164157911042/Cxc4IR1RJ0idOh-ctI5pyHYnODdHo4Hpk30qn3L7edcv960mzkg62BIaA-N0xmlIyDzV"; try { await fetch(webhookURL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content }) }); setIsSending(false); setIsSent(true); setTimeout(() => setIsSent(false), 2000); } catch (e) { alert("Failed to send."); setIsSending(false); } };
+  const sendToDiscord = async () => { setIsSending(true); setIsSent(false); const content = `Sent Links: **${officeTotal.toLocaleString()}**\n\nTarget: **${target/1000}k**`; const webhookURL = "https://discord.com/api/webhooks/1466497164157911042/Cxc4IR1RJ0idOh-ctI5pyHYnODdHo4Hpk30qn3L7edcv960mzkg62BIaA-N0xmlIyDzV"; try { await fetch(webhookURL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content }) }); setIsSending(false); setIsSent(true); setTimeout(() => setIsSent(false), 2000); } catch (e) { alert("Failed to send."); setIsSending(false); } };
 
   return (
     <div className="h-full flex flex-col gap-3 select-none">
@@ -165,25 +174,21 @@ const OfficePage = ({ triggerConfirm, resetSignal }: { triggerConfirm: any, rese
          </div>
       </div>
 
-      <div className="bg-[#0B66C3]/10 border border-black/5 dark:border-white/10 rounded-2xl p-4 text-center shadow-sm shrink-0">
-         <h3 className="text-xl font-bold text-gray-700 dark:text-white mb-1 tabular-nums">Sent Links: {officeTotal.toLocaleString()}</h3>
-         <p className="text-red-500 font-medium text-sm tabular-nums">Need to send more <span className="font-bold text-red-600">{needed.toLocaleString()}</span> links to reach {target/1000}k Milestone</p>
-      </div>
+      {/* REMOVED MIDDLE SUMMARY SECTION */}
 
-      {/* COMPACT 2-COLUMN GRID FOR HOURS */}
+      {/* FIXED 1-COLUMN STACK FOR HOURS */}
       <div className="flex-1 bg-[#0B66C3]/10 border border-black/5 dark:border-white/10 rounded-2xl p-4 shadow-sm overflow-hidden flex flex-col">
-         <div className="grid grid-cols-2 gap-x-8 mb-2 text-center font-bold text-[#0B66C3] text-sm shrink-0">
-            <div className="grid grid-cols-[1fr_50px_1fr] gap-2"><span>Sales</span><span>Time</span><span>Search</span></div>
-            <div className="grid grid-cols-[1fr_50px_1fr] gap-2"><span>Sales</span><span>Time</span><span>Search</span></div>
+         <div className="grid grid-cols-[1fr_80px_1fr] gap-x-8 mb-2 text-center font-bold text-[#0B66C3] text-sm shrink-0">
+            <div>Sales</div><div>Time</div><div>Search</div>
          </div>
          
          <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
-            <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+            <div className="space-y-2">
                 {hours.map((time, i) => (
-                <div key={i} className="grid grid-cols-[1fr_50px_1fr] gap-2 items-center">
-                    <input type="number" value={inputs[`sales-${i}`] || ''} onChange={(e) => handleInput('sales', i, e.target.value)} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1 text-center outline-none focus:border-[#0B66C3] no-spinner tabular-nums text-gray-800 dark:text-white text-xs" />
-                    <div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 text-center">{time}</div>
-                    <input type="number" value={inputs[`search-${i}`] || ''} onChange={(e) => handleInput('search', i, e.target.value)} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1 text-center outline-none focus:border-[#0B66C3] no-spinner tabular-nums text-gray-800 dark:text-white text-xs" />
+                <div key={i} className="grid grid-cols-[1fr_80px_1fr] gap-4 items-center">
+                    <input type="number" value={inputs[`sales-${i}`] || ''} onChange={(e) => handleInput('sales', i, e.target.value)} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1 text-center outline-none focus:border-[#0B66C3] no-spinner tabular-nums text-gray-800 dark:text-white text-sm" />
+                    <div className="text-xs font-bold text-gray-500 dark:text-gray-400 text-center">{time}</div>
+                    <input type="number" value={inputs[`search-${i}`] || ''} onChange={(e) => handleInput('search', i, e.target.value)} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg py-1 text-center outline-none focus:border-[#0B66C3] no-spinner tabular-nums text-gray-800 dark:text-white text-sm" />
                 </div>
                 ))}
             </div>
