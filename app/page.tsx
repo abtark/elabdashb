@@ -31,10 +31,10 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-gray-50 dark:bg-[#050505] transition-colors duration-500 select-none">
-      {/* Updated Background Image */}
+      {/* Updated Background Image: Make sure 'image_d82db7.jpg' is in your public folder */}
       <div className="absolute inset-0 z-0">
         <Image 
-          src="https://cdn.pixabay.com/photo/2022/07/26/05/28/circles-7345110_1280.jpg" 
+          src="/image_d82db7.jpg" 
           alt="Background" 
           fill 
           className="object-cover opacity-30 dark:opacity-20 blur-sm"
@@ -51,7 +51,7 @@ export default function LoginPage() {
         {/* Glass Container */}
         <div className="w-full bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-2xl rounded-3xl p-8 md:p-12 overflow-y-auto">
           
-          {/* Logo Section */}
+          {/* Logo Section - Large Size */}
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
