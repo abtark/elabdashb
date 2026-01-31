@@ -17,35 +17,59 @@ import UpdatesApp from "./components/UpdatesApp";
 import SnacksApp from "./components/SnacksApp";
 
 const FloatingShapes = () => {
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => { setIsClient(true); }, []);
-  if (!isClient) return null;
+  const [shapes, setShapes] = useState<any[]>([]);
 
-  const colors = ["bg-blue-500", "bg-purple-500", "bg-pink-500", "bg-orange-500", "bg-cyan-500", "bg-green-500"];
-  const shapes = Array.from({ length: 15 }).map((_, i) => ({
-    id: i,
-    size: Math.random() * 100 + 50, 
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    duration: Math.random() * 20 + 10,
-    color: colors[Math.floor(Math.random() * colors.length)],
-    delay: Math.random() * 5
-  }));
+  useEffect(() => {
+    const colors = [
+      "bg-blue-400/30 dark:bg-blue-600/10", 
+      "bg-purple-400/30 dark:bg-purple-600/10", 
+      "bg-pink-400/30 dark:bg-pink-600/10", 
+      "bg-orange-400/30 dark:bg-orange-600/10", 
+      "bg-emerald-400/30 dark:bg-emerald-600/10"
+    ];
+
+    const generatedShapes = Array.from({ length: 8 }).map((_, i) => {
+      const isBig = i === 0; 
+      const size = isBig ? Math.random() * 200 + 300 : Math.random() * 100 + 50; 
+      
+      return {
+        id: i,
+        size: size,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        duration: Math.random() * 60 + 40,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        delay: Math.random() * 10
+      };
+    });
+    setShapes(generatedShapes);
+  }, []);
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-gray-100 dark:bg-[#050505]">
       {shapes.map((shape) => (
         <motion.div
           key={shape.id}
-          className={`absolute rounded-full opacity-30 dark:opacity-20 blur-xl ${shape.color}`}
-          initial={{ width: shape.size, height: shape.size, x: `${shape.x}vw`, y: `${shape.y}vh` }}
+          className={`absolute rounded-full blur-3xl ${shape.color}`}
+          initial={{ 
+            width: shape.size, 
+            height: shape.size, 
+            x: `${shape.x}vw`, 
+            y: `${shape.y}vh` 
+          }}
           animate={{ 
             x: [`${shape.x}vw`, `${Math.random() * 100}vw`, `${Math.random() * 100}vw`],
             y: [`${shape.y}vh`, `${Math.random() * 100}vh`, `${Math.random() * 100}vh`],
-            scale: [1, 1.2, 0.8, 1],
+            scale: [1, 1.2, 0.9, 1],
             rotate: [0, 180, 360]
           }}
-          transition={{ duration: shape.duration, repeat: Infinity, repeatType: "reverse", ease: "linear", delay: shape.delay }}
+          transition={{
+            duration: shape.duration,
+            repeat: Infinity,
+            repeatType: "mirror",
+            ease: "linear",
+            delay: shape.delay
+          }}
         />
       ))}
     </div>
@@ -118,6 +142,17 @@ export default function DashboardPage() {
 
   useEffect(() => {
       setIsClient(true);
+      
+      // Protection Logic
+      const handleContext = (e: Event) => e.preventDefault();
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) {
+          e.preventDefault();
+        }
+      };
+      window.addEventListener('contextmenu', handleContext);
+      window.addEventListener('keydown', handleKeyDown);
+
       const savedApp = localStorage.getItem('dashboard_active_app');
       if (savedApp) setActiveApp(savedApp);
       const savedBubbles = localStorage.getItem('show_stopwatch_bubbles');
@@ -126,6 +161,11 @@ export default function DashboardPage() {
       if (savedBubbles) setShowBubbles(JSON.parse(savedBubbles));
       if (savedLinks) setTotalSentLinks(JSON.parse(savedLinks));
       if (savedEntries) setEntriesCounts(JSON.parse(savedEntries));
+
+      return () => {
+        window.removeEventListener('contextmenu', handleContext);
+        window.removeEventListener('keydown', handleKeyDown);
+      };
   }, []);
 
   useEffect(() => { if (isClient) { if(activeApp) localStorage.setItem('dashboard_active_app', activeApp); else localStorage.removeItem('dashboard_active_app'); } }, [activeApp, isClient]);
@@ -176,14 +216,14 @@ export default function DashboardPage() {
         
         <FloatingShapes />
 
-        <motion.div layout className="relative z-10 w-full max-w-[950px] h-[95vh] max-h-[850px] bg-white/10 dark:bg-black/20 backdrop-blur-3xl border border-white/20 dark:border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]">
+        <motion.div layout className="relative z-10 w-full max-w-[950px] h-[95vh] max-h-[850px] bg-white/20 dark:bg-black/20 backdrop-blur-3xl border border-white/30 dark:border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]">
           
-          <div className="flex items-center justify-between px-6 py-2 shrink-0 select-none">
+          <div className="flex items-center justify-between px-6 py-1 shrink-0 select-none">
             <h1 className={`text-xl font-bold tracking-tight opacity-90 ml-2 transition-colors duration-300 ${headingColor}`}>
                {activeItem ? activeItem.label : "EntryLab Dashboard"}
             </h1>
             <div className="flex items-center gap-4">
-               <div className="relative w-28 h-28 drop-shadow-2xl">
+               <div className="relative w-28 h-28 drop-shadow-2xl pointer-events-none">
                   <Image src="https://iili.io/FC3KC6g.png" alt="Logo" fill className="object-contain" priority />
                </div>
                <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="p-2 rounded-full bg-white/20 dark:bg-white/5 hover:bg-white/40 transition-colors text-gray-800 dark:text-white">
@@ -195,7 +235,7 @@ export default function DashboardPage() {
           <div className="flex flex-1 overflow-hidden relative">
             <Sidebar menuItems={menuItems} activeApp={activeApp} setActiveApp={setActiveApp} />
 
-            <div className="flex-1 relative overflow-hidden bg-white/20 dark:bg-transparent backdrop-blur-sm">
+            <div className="flex-1 relative overflow-hidden bg-white/10 dark:bg-transparent backdrop-blur-md">
               <AnimatePresence mode="wait">
                 {activeApp ? (
                   <motion.div key={activeApp} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="h-full w-full flex flex-col p-6 pt-6">
