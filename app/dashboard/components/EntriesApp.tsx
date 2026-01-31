@@ -19,8 +19,9 @@ const CloseButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
-const Modal = ({ isOpen, onClose, title, children }: any) => { if (!isOpen) return null; return <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"><motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-md p-6 shadow-2xl relative"><div className="flex justify-between items-center mb-4"><h3 className="text-lg font-bold dark:text-white">{title}</h3><button onClick={onClose}><X size={20}/></button></div>{children}</motion.div></div>; };
-const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => { if (!isOpen) return null; return <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"><motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center"><h3 className="text-lg font-bold dark:text-white mb-2">Confirmation</h3><p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p><div className="flex justify-center gap-4"><button onClick={onClose} className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-800 font-medium">No</button><button onClick={() => { onConfirm(); onClose(); }} className="px-4 py-2 rounded-lg bg-red-500 text-white font-medium">Yes</button></div></motion.div></div>; };
+// FIX: Modal text colors (dark:text-white, text-gray-800)
+const Modal = ({ isOpen, onClose, title, children }: any) => { if (!isOpen) return null; return <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"><motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-md p-6 shadow-2xl relative"><div className="flex justify-between items-center mb-4"><h3 className="text-lg font-bold text-gray-800 dark:text-white">{title}</h3><button onClick={onClose}><X size={20} className="text-gray-500 dark:text-white" /></button></div>{children}</motion.div></div>; };
+const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => { if (!isOpen) return null; return <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"><motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="bg-white dark:bg-gray-900 border border-white/20 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center"><h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Confirmation</h3><p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p><div className="flex justify-center gap-4"><button onClick={onClose} className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white font-medium">No</button><button onClick={() => { onConfirm(); onClose(); }} className="px-4 py-2 rounded-lg bg-red-500 text-white font-medium">Yes</button></div></motion.div></div>; };
 
 export default function EntriesApp({ onClose, counts, setCounts, resetSignal }: EntriesAppProps) {
   const [labels, setLabels] = useState<Record<CategoryKey, string>>(DEFAULT_LABELS);
@@ -39,7 +40,7 @@ export default function EntriesApp({ onClose, counts, setCounts, resetSignal }: 
     const savedLabels = localStorage.getItem('dailyEntryLabels');
     const savedLogs = localStorage.getItem('dailyEntryLogs');
     const savedCounts = localStorage.getItem('dailyEntryCounts'); 
-    const savedInputs = localStorage.getItem('dailyEntryInputs'); // Draft inputs
+    const savedInputs = localStorage.getItem('dailyEntryInputs'); 
     if (savedLabels) setLabels(JSON.parse(savedLabels));
     if (savedLogs) setLogs(JSON.parse(savedLogs));
     if (savedCounts) setCounts(JSON.parse(savedCounts));
@@ -50,7 +51,7 @@ export default function EntriesApp({ onClose, counts, setCounts, resetSignal }: 
     localStorage.setItem('dailyEntryCounts', JSON.stringify(counts));
     localStorage.setItem('dailyEntryLabels', JSON.stringify(labels));
     localStorage.setItem('dailyEntryLogs', JSON.stringify(logs));
-    localStorage.setItem('dailyEntryInputs', JSON.stringify(inputs)); // Save draft inputs
+    localStorage.setItem('dailyEntryInputs', JSON.stringify(inputs)); 
   }, [counts, labels, logs, inputs]);
 
   const getTotal = () => Object.values(counts).reduce((a, b) => a + b, 0);
@@ -96,7 +97,7 @@ export default function EntriesApp({ onClose, counts, setCounts, resetSignal }: 
                <div key={cat.key} className="group flex items-center gap-4 bg-white/60 dark:bg-white/5 p-1 rounded-xl border border-transparent hover:border-gray-300 dark:hover:border-white/30 transition-all">
                   <button onClick={() => startEditLabel(cat.key)} className="p-2 text-gray-400 hover:text-green-500 opacity-0 group-hover:opacity-100 transition-all"><Edit3 size={16}/></button>
                   <div className="flex-1 relative">
-                    {editingKey === cat.key ? (<div className="flex gap-2"><input value={editLabelValue} onChange={(e) => setEditLabelValue(e.target.value)} className="w-full bg-white dark:bg-black border border-green-500 rounded-lg px-3 py-2 text-sm outline-none" autoFocus /><button onClick={saveEditLabel} className="bg-green-500 text-white p-2 rounded-lg"><Check size={16}/></button></div>) : (<input type="number" value={inputs[cat.key]} onChange={(e) => setInputs(prev => ({ ...prev, [cat.key]: e.target.value }))} onKeyDown={(e) => e.key === 'Enter' && handleAdd(cat.key)} className="w-full bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg py-3 px-4 text-center text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-green-400/50 no-spinner text-base font-medium" placeholder={`${labels[cat.key]} Entry`} />)}
+                    {editingKey === cat.key ? (<div className="flex gap-2"><input value={editLabelValue} onChange={(e) => setEditLabelValue(e.target.value)} className="w-full bg-white dark:bg-black border border-green-500 rounded-lg px-3 py-2 text-sm outline-none" autoFocus /><button onClick={saveEditLabel} className="bg-green-500 text-white p-2 rounded-lg"><Check size={16}/></button></div>) : (<input type="number" value={inputs[cat.key]} onChange={(e) => setInputs(prev => ({ ...prev, [cat.key]: e.target.value }))} onKeyDown={(e) => e.key === 'Enter' && handleAdd(cat.key)} className="w-full bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg py-3 px-4 text-center text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-green-400/50 no-spinner text-base font-medium" placeholder={`Enter ${labels[cat.key]} Entry`} />)}
                   </div>
                   <motion.button whileTap={{ scale: 0.95 }} onClick={() => handleAdd(cat.key)} className={`p-3 rounded-xl border transition-all duration-200 shadow-sm flex items-center justify-center min-w-[44px] ${addedAnimation === cat.key ? 'bg-green-500 border-green-500 text-white' : 'bg-white dark:bg-white/10 border-gray-200 dark:border-white/10 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-500/20'}`}>{addedAnimation === cat.key ? <Check size={20} /> : <Plus size={20} strokeWidth={3} />}</motion.button>
                </div>
