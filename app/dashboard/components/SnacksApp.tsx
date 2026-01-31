@@ -68,10 +68,10 @@ export default function SnacksApp({ onClose }: { onClose: () => void }) {
         {activeTab === 'person' ? (
           <div className="h-full flex flex-col gap-3 max-w-[95%] mx-auto">
              <div className="flex items-center justify-around bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl p-2 shadow-sm backdrop-blur-md text-center shrink-0">
-                {/* Specific Colors for Stats */}
-                <div className="bg-blue-100/50 dark:bg-blue-900/20 px-4 py-2 rounded-xl"><div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Total</div><div className="text-lg font-bold text-blue-600 dark:text-blue-400 leading-none">{totalPersons}</div></div>
-                <div className="bg-red-100/50 dark:bg-red-900/20 px-4 py-2 rounded-xl"><div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">No Snack</div><div className="text-lg font-bold text-red-500 leading-none">{noSnackCount}</div></div>
-                <div className="bg-green-100/50 dark:bg-green-900/20 px-4 py-2 rounded-xl"><div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Taking</div><div className="text-lg font-bold text-green-500 leading-none">{takingCount}</div></div>
+                {/* INCREASED PADDING px-8 */}
+                <div className="bg-blue-100/50 dark:bg-blue-900/20 px-8 py-2 rounded-xl"><div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Total</div><div className="text-lg font-bold text-blue-600 dark:text-blue-400 leading-none">{totalPersons}</div></div>
+                <div className="bg-red-100/50 dark:bg-red-900/20 px-8 py-2 rounded-xl"><div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">No Snack</div><div className="text-lg font-bold text-red-500 leading-none">{noSnackCount}</div></div>
+                <div className="bg-green-100/50 dark:bg-green-900/20 px-8 py-2 rounded-xl"><div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Taking</div><div className="text-lg font-bold text-green-500 leading-none">{takingCount}</div></div>
              </div>
              <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 pb-2">
                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -89,20 +89,23 @@ export default function SnacksApp({ onClose }: { onClose: () => void }) {
           </div>
         ) : (
           <div className="h-full flex flex-col gap-4 max-w-[95%] mx-auto overflow-hidden">
-            {/* Reverted Background to Standard Light/Dark */}
             <div className="flex-1 bg-white/40 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm backdrop-blur-md flex flex-col">
                <div className="grid grid-cols-[80px_1fr_1fr] bg-gray-50/80 dark:bg-white/5 border-b border-gray-200 dark:border-white/10 text-xs font-bold text-gray-600 dark:text-gray-300 text-center py-3 shrink-0"><div>Day</div><div>Morning</div><div>Evening</div></div>
                <div className="flex-1 overflow-y-auto custom-scrollbar">
                   {snackRows.map((row, index) => {
-                     const isSelectedMorning = selectedSlot?.dayIndex === index && selectedSlot.type === 'morning'; const isSelectedEvening = selectedSlot?.dayIndex === index && selectedSlot.type === 'evening'; const isToday = index === todayRowIndex;
+                     const isSelectedMorning = selectedSlot?.dayIndex === index && selectedSlot.type === 'morning';
+                     const isSelectedEvening = selectedSlot?.dayIndex === index && selectedSlot.type === 'evening';
+                     const isToday = index === todayRowIndex;
                      return (
                         <div key={row.day} className={`grid grid-cols-[80px_1fr_1fr] items-stretch text-sm border-b border-gray-100 dark:border-white/5 transition-colors min-h-[60px] ${isToday ? 'bg-green-100/60 dark:bg-green-900/20' : 'hover:bg-white/30 dark:hover:bg-white/5'}`}>
                            <div className={`flex items-center justify-center font-medium border-r border-gray-100 dark:border-white/5 ${isToday ? 'text-green-700 dark:text-green-400 font-bold' : 'text-gray-700 dark:text-gray-300'}`}>{row.day.slice(0,3)}</div>
-                           <div onClick={() => handleSlotClick(index, 'morning')} className={`relative group p-3 border-r border-gray-100 dark:border-white/5 cursor-pointer transition-all duration-200 flex items-center gap-3 ${isSelectedMorning ? 'bg-[#9E2A3A]/20' : ''}`}>
+                           {/* Morning Slot: NO BG Highlight, Just Text */}
+                           <div onClick={() => handleSlotClick(index, 'morning')} className={`relative group p-3 border-r border-gray-100 dark:border-white/5 cursor-pointer transition-all duration-200 flex items-center gap-3`}>
                               <button onClick={(e) => { e.stopPropagation(); toggleSnackEdit(index, 'morning'); }} className="text-gray-400 hover:text-blue-500 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">{row.editingMorning ? <Check size={16} className="text-green-500"/> : <Edit2 size={16}/>}</button>
                               {row.editingMorning ? <input value={row.morning} onChange={e => updateSnackText(index, 'morning', e.target.value)} className="w-full bg-white/50 border-b border-blue-400 outline-none text-gray-800 dark:text-white text-center text-sm py-1" autoFocus onClick={e => e.stopPropagation()} /> : <span className={`flex-1 text-center select-none text-base ${isSelectedMorning ? 'font-bold text-[#9E2A3A]' : 'text-gray-700 dark:text-gray-300'}`}>{row.morning}</span>}
                            </div>
-                           <div onClick={() => handleSlotClick(index, 'evening')} className={`relative group p-3 cursor-pointer transition-all duration-200 flex items-center gap-3 ${isSelectedEvening ? 'bg-[#9E2A3A]/20' : ''}`}>
+                           {/* Evening Slot: NO BG Highlight, Just Text */}
+                           <div onClick={() => handleSlotClick(index, 'evening')} className={`relative group p-3 cursor-pointer transition-all duration-200 flex items-center gap-3`}>
                               <button onClick={(e) => { e.stopPropagation(); toggleSnackEdit(index, 'evening'); }} className="text-gray-400 hover:text-blue-500 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">{row.editingEvening ? <Check size={16} className="text-green-500"/> : <Edit2 size={16}/>}</button>
                               {row.editingEvening ? <input value={row.evening} onChange={e => updateSnackText(index, 'evening', e.target.value)} className="w-full bg-white/50 border-b border-blue-400 outline-none text-gray-800 dark:text-white text-center text-sm py-1" autoFocus onClick={e => e.stopPropagation()} /> : <span className={`flex-1 text-center select-none text-base ${isSelectedEvening ? 'font-bold text-[#9E2A3A]' : 'text-gray-700 dark:text-gray-300'}`}>{row.evening}</span>}
                            </div>
