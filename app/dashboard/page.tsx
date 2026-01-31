@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 import Image from "next/image";
 import { 
   CheckSquare, Table, Clock, Zap, Coffee, Sun, Moon, 
-  Play, Pause, Compass // Changed to Compass for Sales Nav
+  Play, Pause, Compass 
 } from "lucide-react";
 
 import Sidebar from "./components/Sidebar";
@@ -17,78 +17,14 @@ import UpdatesApp from "./components/UpdatesApp";
 import SnacksApp from "./components/SnacksApp";
 
 const useStopwatch = (id: string) => {
-  const [state, setState] = useState({
-    startTime: 0,
-    elapsed: 0,
-    isRunning: false,
-    laps: [] as number[]
-  });
-
-  useEffect(() => {
-    const saved = localStorage.getItem(`stopwatch_${id}`);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.isRunning) {
-        const now = Date.now();
-        const additionalTime = now - parsed.lastTick;
-        setState({
-          startTime: parsed.startTime,
-          elapsed: parsed.elapsed + additionalTime,
-          isRunning: true,
-          laps: parsed.laps || []
-        });
-      } else {
-        setState({ ...parsed, laps: parsed.laps || [] });
-      }
-    }
-  }, [id]);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (state.isRunning) {
-      localStorage.setItem(`stopwatch_${id}`, JSON.stringify({ ...state, lastTick: Date.now() }));
-      interval = setInterval(() => {
-        setState(prev => {
-          const newState = { ...prev, elapsed: Date.now() - prev.startTime };
-          localStorage.setItem(`stopwatch_${id}`, JSON.stringify({ ...newState, lastTick: Date.now() }));
-          return newState;
-        });
-      }, 1000);
-    } else {
-      localStorage.setItem(`stopwatch_${id}`, JSON.stringify({ ...state, lastTick: Date.now() }));
-    }
-    return () => clearInterval(interval);
-  }, [state.isRunning, state.startTime, id, state.laps]);
-
-  const start = () => {
-    if (!state.isRunning) {
-      setState(prev => ({ ...prev, startTime: Date.now() - prev.elapsed, isRunning: true }));
-    }
-  };
-
-  const pause = () => {
-    if (state.isRunning) {
-      setState(prev => ({ ...prev, isRunning: false }));
-    }
-  };
-
-  const reset = () => {
-    setState({ startTime: 0, elapsed: 0, isRunning: false, laps: [] });
-    localStorage.removeItem(`stopwatch_${id}`);
-  };
-
-  const lap = () => {
-    const currentTotal = state.elapsed + (state.isRunning ? (Date.now() - state.startTime) - state.elapsed : 0);
-    setState(prev => ({ ...prev, laps: [currentTotal, ...prev.laps] }));
-  };
-
-  const deleteLap = (index: number) => {
-      setState(prev => {
-          const newLaps = prev.laps.filter((_, i) => i !== index);
-          return { ...prev, laps: newLaps };
-      });
-  };
-
+  const [state, setState] = useState({ startTime: 0, elapsed: 0, isRunning: false, laps: [] as number[] });
+  useEffect(() => { const saved = localStorage.getItem(`stopwatch_${id}`); if (saved) { const parsed = JSON.parse(saved); if (parsed.isRunning) { const now = Date.now(); const additionalTime = now - parsed.lastTick; setState({ startTime: parsed.startTime, elapsed: parsed.elapsed + additionalTime, isRunning: true, laps: parsed.laps || [] }); } else { setState({ ...parsed, laps: parsed.laps || [] }); } } }, [id]);
+  useEffect(() => { let interval: NodeJS.Timeout; if (state.isRunning) { localStorage.setItem(`stopwatch_${id}`, JSON.stringify({ ...state, lastTick: Date.now() })); interval = setInterval(() => { setState(prev => { const newState = { ...prev, elapsed: Date.now() - prev.startTime }; localStorage.setItem(`stopwatch_${id}`, JSON.stringify({ ...newState, lastTick: Date.now() })); return newState; }); }, 1000); } else { localStorage.setItem(`stopwatch_${id}`, JSON.stringify({ ...state, lastTick: Date.now() })); } return () => clearInterval(interval); }, [state.isRunning, state.startTime, id, state.laps]);
+  const start = () => { if (!state.isRunning) { setState(prev => ({ ...prev, startTime: Date.now() - prev.elapsed, isRunning: true })); } };
+  const pause = () => { if (state.isRunning) { setState(prev => ({ ...prev, isRunning: false })); } };
+  const reset = () => { setState({ startTime: 0, elapsed: 0, isRunning: false, laps: [] }); localStorage.removeItem(`stopwatch_${id}`); };
+  const lap = () => { const currentTotal = state.elapsed + (state.isRunning ? (Date.now() - state.startTime) - state.elapsed : 0); setState(prev => ({ ...prev, laps: [currentTotal, ...prev.laps] })); };
+  const deleteLap = (index: number) => { setState(prev => { const newLaps = prev.laps.filter((_, i) => i !== index); return { ...prev, laps: newLaps }; }); };
   return { ...state, start, pause, reset, lap, deleteLap };
 };
 
@@ -172,13 +108,12 @@ export default function DashboardPage() {
   const formatTime = (ms: number) => { const s = Math.floor(ms / 1000); const m = Math.floor(s / 60); const h = Math.floor(m / 60); return `${h.toString().padStart(2, '0')}:${(m % 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`; };
   const getHourDecimal = (ms: number) => { const totalMinutes = Math.floor(ms / 60000); const hours = Math.floor(totalMinutes / 60); const minutes = totalMinutes % 60; return hours + (minutes / 60); };
 
-  // --- UPDATED COLORS & ICONS ---
   const menuItems = [
-    { id: 'newtask', icon: Compass, label: 'NewTask Updates', color: 'text-[#0B66C3]', bgColor: 'bg-[#0B66C3]' }, // Compass Icon & #0B66C3
+    { id: 'newtask', icon: Compass, label: 'NewTask Updates', color: 'text-[#0B66C3]', bgColor: 'bg-[#0B66C3]' },
     { id: 'entries', icon: Table, label: 'Daily Entry Counts', color: 'text-green-500', bgColor: 'bg-green-500' },
     { id: 'tracker', icon: Clock, label: 'Tracker', color: 'text-orange-500', bgColor: 'bg-orange-500' },
-    { id: 'updates', icon: Zap, label: 'Updates', color: 'text-[#18B0FE]', bgColor: 'bg-[#18B0FE]' }, // Updates #18B0FE
-    { id: 'snacks', icon: Coffee, label: 'Food & Beverage', color: 'text-[#9E2A3A]', bgColor: 'bg-[#9E2A3A]' }, // Snacks #9E2A3A
+    { id: 'updates', icon: Zap, label: 'Updates', color: 'text-[#18B0FE]', bgColor: 'bg-[#18B0FE]' },
+    { id: 'snacks', icon: Coffee, label: 'Food & Beverage', color: 'text-[#9E2A3A]', bgColor: 'bg-[#9E2A3A]' },
   ];
 
   const handleClose = () => { setActiveApp(null); localStorage.removeItem('dashboard_active_app'); };
@@ -200,26 +135,40 @@ export default function DashboardPage() {
 
       <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-gray-200 dark:bg-[#050505] transition-colors duration-500 font-ubuntu select-none">
         
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-10 left-[20%] w-96 h-96 bg-purple-500/20 dark:bg-purple-500/30 rounded-full blur-[100px] animate-blob" />
-          <div className="absolute top-[40%] right-[20%] w-96 h-96 bg-cyan-500/20 dark:bg-cyan-500/30 rounded-full blur-[100px] animate-blob animation-delay-2000" />
+        {/* Updated Dashboard Background Image */}
+        <div className="absolute inset-0 z-0">
+            <Image 
+              src="https://cdn.pixabay.com/photo/2022/07/26/05/28/circles-7345110_1280.jpg" 
+              alt="Background" 
+              fill 
+              className="object-cover opacity-30 dark:opacity-20 blur-sm"
+              priority
+            />
         </div>
 
         <motion.div layout className="relative z-10 w-full max-w-[950px] h-[95vh] max-h-[850px] bg-white/40 dark:bg-black/40 backdrop-blur-2xl border border-white/50 dark:border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-2xl">
           
-          <div className="flex items-center justify-between px-6 pt-4 pb-0 shrink-0 select-none">
+          {/* Reduced padding top (pt-2) to fix height */}
+          <div className="flex items-center justify-between px-6 pt-2 pb-0 shrink-0 select-none">
             <h1 className="text-xl font-bold tracking-tight text-gray-800 dark:text-white opacity-90 ml-2">
                {activeApp ? menuItems.find(i => i.id === activeApp)?.label : "EntryLab Dashboard"}
             </h1>
             <div className="flex items-center gap-6">
-               {/* Dashboard Logo - Increased size & Added Splash Animation */}
+               {/* Shine Animation Logo */}
                <motion.div 
-                 initial={{ scale: 0, rotate: -180 }}
-                 animate={{ scale: 1, rotate: 0 }}
-                 transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                 className="relative w-36 h-36 drop-shadow-2xl"
+                 initial={{ opacity: 0, scale: 0.8 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 transition={{ duration: 0.5 }}
+                 className="relative w-28 h-28 drop-shadow-2xl overflow-hidden rounded-full"
                >
-                  <Image src="https://iili.io/FC3KC6g.png" alt="Logo" fill className="object-contain" priority />
+                  <Image src="https://iili.io/FC3KC6g.png" alt="Logo" fill className="object-contain relative z-10" priority />
+                  {/* Shine Effect Overlay */}
+                  <motion.div 
+                    initial={{ x: '-100%' }}
+                    animate={{ x: '100%' }}
+                    transition={{ repeat: Infinity, duration: 2, ease: "linear", repeatDelay: 3 }}
+                    className="absolute inset-0 z-20 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12"
+                  />
                </motion.div>
                <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="p-3 rounded-full bg-white/20 dark:bg-white/5 hover:bg-white/40 transition-colors text-gray-800 dark:text-white">
                  {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
