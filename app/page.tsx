@@ -30,7 +30,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-gray-50 dark:bg-[#050505] transition-colors duration-500">
+    <main className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-gray-50 dark:bg-[#050505] transition-colors duration-500 select-none">
       {/* Background Abstract blobs */}
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-500/20 dark:bg-purple-600/30 rounded-full blur-[100px]" />
       <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-500/20 dark:bg-blue-600/30 rounded-full blur-[100px]" />
@@ -38,23 +38,23 @@ export default function LoginPage() {
       <motion.div
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.6, type: "spring", stiffness: 200, damping: 20 }}
         className="w-full max-w-[750px] max-h-[95vh] flex flex-col items-center justify-center relative z-10"
       >
         {/* Glass Container */}
         <div className="w-full bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-2xl rounded-3xl p-8 md:p-12 overflow-y-auto">
           
-          {/* Logo Section - UPDATED SIZE */}
+          {/* Logo Section - INCREASED SIZE */}
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex justify-center mb-8"
+            transition={{ delay: 0.2, type: "spring" }}
+            className="flex justify-center mb-10"
           >
-            <div className="relative w-32 h-32 md:w-48 md:h-48 drop-shadow-2xl">
+            <div className="relative w-48 h-48 md:w-64 md:h-64 drop-shadow-2xl">
               <Image 
                 src="https://iili.io/FC3KC6g.png" 
-                alt="Emanistation Logo" 
+                alt="EntryLab Logo" 
                 fill
                 className="object-contain"
                 priority
@@ -69,7 +69,7 @@ export default function LoginPage() {
             transition={{ delay: 0.3 }}
             className="text-3xl md:text-4xl font-bold text-center text-gray-800 dark:text-white mb-2 tracking-wide"
           >
-            Log in to Emanistation
+            Log in to EntryLab
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0 }}
