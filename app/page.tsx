@@ -74,6 +74,11 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const loggedIn = localStorage.getItem("is_logged_in");
+    if (loggedIn === "true") {
+      router.push("/dashboard");
+    }
+
     const handleContext = (e: Event) => e.preventDefault();
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) {
@@ -86,7 +91,7 @@ export default function LoginPage() {
       window.removeEventListener('contextmenu', handleContext);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [router]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,6 +100,7 @@ export default function LoginPage() {
 
     setTimeout(() => {
       if (email === "admin@xmail.com" && password === "1234567890") {
+        localStorage.setItem("is_logged_in", "true");
         router.push("/dashboard");
       } else {
         setError(true);
@@ -105,9 +111,7 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-500 select-none">
-      
       <FloatingShapes />
-
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -115,7 +119,6 @@ export default function LoginPage() {
         className="w-full max-w-[420px] max-h-[90vh] flex flex-col items-center justify-center relative z-10"
       >
         <div className="w-full bg-white/20 dark:bg-white/5 backdrop-blur-2xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] rounded-3xl p-8 overflow-y-auto">
-          
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -152,7 +155,6 @@ export default function LoginPage() {
           </motion.p>
 
           <form onSubmit={handleLogin} className="space-y-4 w-full">
-            
             <motion.div 
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -229,7 +231,6 @@ export default function LoginPage() {
           >
             New? <span className="text-blue-600 dark:text-white font-semibold cursor-pointer hover:underline">Create an account.</span>
           </motion.div>
-
         </div>
       </motion.div>
     </main>
