@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { 
   CheckSquare, Table, Clock, Zap, Coffee, Sun, Moon, 
   Play, Pause, Compass 
@@ -130,6 +131,7 @@ const DigitalClock = () => {
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [activeApp, setActiveApp] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
@@ -141,9 +143,14 @@ export default function DashboardPage() {
   const newTaskSW = useStopwatch('newtask');
 
   useEffect(() => {
+      const loggedIn = localStorage.getItem("is_logged_in");
+      if (loggedIn !== "true") {
+        router.push("/");
+        return;
+      }
+
       setIsClient(true);
       
-      // Protection Logic
       const handleContext = (e: Event) => e.preventDefault();
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) {
@@ -166,7 +173,7 @@ export default function DashboardPage() {
         window.removeEventListener('contextmenu', handleContext);
         window.removeEventListener('keydown', handleKeyDown);
       };
-  }, []);
+  }, [router]);
 
   useEffect(() => { if (isClient) { if(activeApp) localStorage.setItem('dashboard_active_app', activeApp); else localStorage.removeItem('dashboard_active_app'); } }, [activeApp, isClient]);
   useEffect(() => { if (isClient) localStorage.setItem('global_total_sent_links', JSON.stringify(totalSentLinks)); }, [totalSentLinks, isClient]);
