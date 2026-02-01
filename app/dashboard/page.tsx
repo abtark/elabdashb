@@ -4,10 +4,9 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { 
   CheckSquare, Table, Clock, Zap, Coffee, Sun, Moon, 
-  Play, Pause, Compass, LogOut 
+  Play, Pause, Compass 
 } from "lucide-react";
 
 import Sidebar from "./components/Sidebar";
@@ -16,6 +15,66 @@ import EntriesApp from "./components/EntriesApp";
 import TrackerApp from "./components/TrackerApp";
 import UpdatesApp from "./components/UpdatesApp";
 import SnacksApp from "./components/SnacksApp";
+
+const FloatingShapes = () => {
+  const [shapes, setShapes] = useState<any[]>([]);
+
+  useEffect(() => {
+    const colors = [
+      "bg-blue-400/30 dark:bg-blue-600/10", 
+      "bg-purple-400/30 dark:bg-purple-600/10", 
+      "bg-pink-400/30 dark:bg-pink-600/10", 
+      "bg-orange-400/30 dark:bg-orange-600/10", 
+      "bg-emerald-400/30 dark:bg-emerald-600/10"
+    ];
+
+    const generatedShapes = Array.from({ length: 8 }).map((_, i) => {
+      const isBig = i === 0; 
+      const size = isBig ? Math.random() * 200 + 300 : Math.random() * 100 + 50; 
+      
+      return {
+        id: i,
+        size: size,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        duration: Math.random() * 60 + 40,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        delay: Math.random() * 10
+      };
+    });
+    setShapes(generatedShapes);
+  }, []);
+
+  return (
+    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-gray-100 dark:bg-[#050505]">
+      {shapes.map((shape) => (
+        <motion.div
+          key={shape.id}
+          className={`absolute rounded-full blur-3xl ${shape.color}`}
+          initial={{ 
+            width: shape.size, 
+            height: shape.size, 
+            x: `${shape.x}vw`, 
+            y: `${shape.y}vh` 
+          }}
+          animate={{ 
+            x: [`${shape.x}vw`, `${Math.random() * 100}vw`, `${Math.random() * 100}vw`],
+            y: [`${shape.y}vh`, `${Math.random() * 100}vh`, `${Math.random() * 100}vh`],
+            scale: [1, 1.2, 0.9, 1],
+            rotate: [0, 180, 360]
+          }}
+          transition={{
+            duration: shape.duration,
+            repeat: Infinity,
+            repeatType: "mirror",
+            ease: "linear",
+            delay: shape.delay
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 const useStopwatch = (id: string) => {
   const [state, setState] = useState({ startTime: 0, elapsed: 0, isRunning: false, laps: [] as number[] });
@@ -71,13 +130,9 @@ const DigitalClock = () => {
 };
 
 export default function DashboardPage() {
-  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [activeApp, setActiveApp] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
-  // Auth Loading State
-  const [isAuthChecking, setIsAuthChecking] = useState(true);
-
   const [totalSentLinks, setTotalSentLinks] = useState(0);
   const [entriesCounts, setEntriesCounts] = useState<Record<string, number>>({ cat1: 0, cat2: 0, cat3: 0, cat4: 0, cat5: 0, cat6: 0 });
   const [showBubbles, setShowBubbles] = useState(false);
@@ -86,7 +141,9 @@ export default function DashboardPage() {
   const newTaskSW = useStopwatch('newtask');
 
   useEffect(() => {
-      // 1. Protection Logic
+      setIsClient(true);
+      
+      // Protection Logic
       const handleContext = (e: Event) => e.preventDefault();
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) {
@@ -96,16 +153,6 @@ export default function DashboardPage() {
       window.addEventListener('contextmenu', handleContext);
       window.addEventListener('keydown', handleKeyDown);
 
-      // 2. Auth Check
-      const isAuth = localStorage.getItem("isAuthenticated");
-      if (isAuth !== "true") {
-        router.push("/");
-      } else {
-        setIsAuthChecking(false);
-        setIsClient(true);
-      }
-
-      // 3. Load State
       const savedApp = localStorage.getItem('dashboard_active_app');
       if (savedApp) setActiveApp(savedApp);
       const savedBubbles = localStorage.getItem('show_stopwatch_bubbles');
@@ -119,7 +166,7 @@ export default function DashboardPage() {
         window.removeEventListener('contextmenu', handleContext);
         window.removeEventListener('keydown', handleKeyDown);
       };
-  }, [router]);
+  }, []);
 
   useEffect(() => { if (isClient) { if(activeApp) localStorage.setItem('dashboard_active_app', activeApp); else localStorage.removeItem('dashboard_active_app'); } }, [activeApp, isClient]);
   useEffect(() => { if (isClient) localStorage.setItem('global_total_sent_links', JSON.stringify(totalSentLinks)); }, [totalSentLinks, isClient]);
@@ -132,11 +179,6 @@ export default function DashboardPage() {
       generalSW.reset(); newTaskSW.reset(); 
       localStorage.removeItem('global_total_sent_links'); localStorage.removeItem('global_entries_counts'); localStorage.removeItem('dailyEntryLogs'); localStorage.removeItem('dailyEntryCounts'); localStorage.removeItem('nt_self_sent_links_logs'); 
       setResetSignal(prev => prev + 1); 
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
-    router.push("/");
   };
 
   const formatTime = (ms: number) => { const s = Math.floor(ms / 1000); const m = Math.floor(s / 60); const h = Math.floor(m / 60); return `${h.toString().padStart(2, '0')}:${(m % 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`; };
@@ -155,8 +197,7 @@ export default function DashboardPage() {
   const activeItem = menuItems.find(i => i.id === activeApp);
   const headingColor = activeItem ? activeItem.color : "text-gray-800 dark:text-white";
 
-  // While checking auth, show nothing or simple background
-  if (isAuthChecking) return null;
+  if (!isClient) return null;
 
   return (
     <>
@@ -173,39 +214,20 @@ export default function DashboardPage() {
 
       <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-500 font-ubuntu select-none">
         
-        {/* Background Image with Slow Rotation (Waving Effect) */}
-        <motion.div 
-            className="absolute inset-[-50%] z-0 pointer-events-none" 
-            animate={{ rotate: 360 }}
-            transition={{ repeat: Infinity, duration: 200, ease: "linear" }}
-        >
-            <Image 
-              src="https://iili.io/fQF3kJI.jpg" 
-              alt="Background" 
-              fill 
-              className="object-cover opacity-30 dark:opacity-20 blur-sm scale-150"
-              priority
-            />
-        </motion.div>
+        <FloatingShapes />
 
-        <motion.div layout className="relative z-10 w-full max-w-[950px] h-[95vh] max-h-[850px] bg-white/10 dark:bg-black/20 backdrop-blur-3xl border border-white/20 dark:border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]">
+        <motion.div layout className="relative z-10 w-full max-w-[950px] h-[95vh] max-h-[850px] bg-white/20 dark:bg-black/20 backdrop-blur-3xl border border-white/30 dark:border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]">
           
           <div className="flex items-center justify-between px-6 py-1 shrink-0 select-none">
             <h1 className={`text-xl font-bold tracking-tight opacity-90 ml-2 transition-colors duration-300 ${headingColor}`}>
                {activeItem ? activeItem.label : "EntryLab Dashboard"}
             </h1>
             <div className="flex items-center gap-4">
-               {/* Fixed Static Logo */}
                <div className="relative w-28 h-28 drop-shadow-2xl pointer-events-none">
-                  <Image src="https://iili.io/FC3KC6g.png" alt="Logo" fill className="object-contain" priority draggable={false} />
+                  <Image src="https://iili.io/FC3KC6g.png" alt="Logo" fill className="object-contain" priority />
                </div>
-               
                <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="p-2 rounded-full bg-white/20 dark:bg-white/5 hover:bg-white/40 transition-colors text-gray-800 dark:text-white">
                  {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-               </button>
-               {/* Logout Button */}
-               <button onClick={handleLogout} className="p-2 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-colors" title="Logout">
-                 <LogOut size={18} />
                </button>
             </div>
           </div>
