@@ -6,116 +6,92 @@ import { FaUser, FaKey, FaArrowRight } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-const FloatingShapes = () => {
-  const [shapes, setShapes] = useState<any[]>([]);
-
-  useEffect(() => {
-    const colors = [
-      "bg-blue-400/30 dark:bg-blue-600/10", 
-      "bg-purple-400/30 dark:bg-purple-600/10", 
-      "bg-pink-400/30 dark:bg-pink-600/10", 
-      "bg-orange-400/30 dark:bg-orange-600/10", 
-      "bg-emerald-400/30 dark:bg-emerald-600/10"
-    ];
-
-    const generatedShapes = Array.from({ length: 8 }).map((_, i) => {
-      const isBig = i === 0; 
-      const size = isBig ? Math.random() * 200 + 300 : Math.random() * 100 + 50; 
-      
-      return {
-        id: i,
-        size: size,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        duration: Math.random() * 60 + 40, 
-        color: colors[Math.floor(Math.random() * colors.length)],
-        delay: Math.random() * 10
-      };
-    });
-    setShapes(generatedShapes);
-  }, []);
-
-  return (
-    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-gray-100 dark:bg-[#050505]">
-      {shapes.map((shape) => (
-        <motion.div
-          key={shape.id}
-          className={`absolute rounded-full blur-3xl ${shape.color}`}
-          initial={{ 
-            width: shape.size, 
-            height: shape.size, 
-            x: `${shape.x}vw`, 
-            y: `${shape.y}vh` 
-          }}
-          animate={{ 
-            x: [`${shape.x}vw`, `${Math.random() * 100}vw`, `${Math.random() * 100}vw`],
-            y: [`${shape.y}vh`, `${Math.random() * 100}vh`, `${Math.random() * 100}vh`],
-            scale: [1, 1.2, 0.9, 1],
-            rotate: [0, 180, 360]
-          }}
-          transition={{
-            duration: shape.duration,
-            repeat: Infinity,
-            repeatType: "mirror",
-            ease: "linear",
-            delay: shape.delay
-          }}
-        />
-      ))}
-    </div>
-  );
-};
-
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
+  // State to prevent hydration mismatch and flash
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
+    // 1. Check if already logged in
+    const isAuth = localStorage.getItem("isAuthenticated");
+    if (isAuth === "true") {
+      router.push("/dashboard");
+    } else {
+      setIsChecking(false); // Allow login form to show
+    }
+
+    // 2. Protection Listeners
     const handleContext = (e: Event) => e.preventDefault();
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && e.key === "I") ||
+        (e.ctrlKey && e.key === "u")
+      ) {
         e.preventDefault();
       }
     };
-    window.addEventListener('contextmenu', handleContext);
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener("contextmenu", handleContext);
+    window.addEventListener("keydown", handleKeyDown);
     return () => {
-      window.removeEventListener('contextmenu', handleContext);
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener("contextmenu", handleContext);
+      window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [router]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(false);
 
+    // Mock Authentication Logic
     setTimeout(() => {
       if (email === "admin@xmail.com" && password === "1234567890") {
+        // Set Auth Token
+        localStorage.setItem("isAuthenticated", "true");
         router.push("/dashboard");
       } else {
         setError(true);
         setLoading(false);
       }
-    }, 1500); 
+    }, 1500);
   };
 
+  // If we are checking auth state, render nothing or a spinner
+  if (isChecking) return null;
+
   return (
-    <main className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-500 select-none">
+    <main className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-gray-50 dark:bg-[#050505] transition-colors duration-500 select-none">
       
-      <FloatingShapes />
+      {/* Background Image with Slow Rotation (Waving Effect) */}
+      <motion.div 
+        className="absolute inset-[-50%] z-0 pointer-events-none" 
+        animate={{ rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 200, ease: "linear" }}
+      >
+        <Image 
+          src="https://iili.io/fQF3kJI.jpg" 
+          alt="Background" 
+          fill 
+          className="object-cover opacity-30 dark:opacity-20 blur-sm scale-150"
+          priority
+        />
+      </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.8, type: "spring", stiffness: 100, damping: 20 }}
+        transition={{ duration: 0.6, type: "spring", stiffness: 200, damping: 20 }}
         className="w-full max-w-[420px] max-h-[90vh] flex flex-col items-center justify-center relative z-10"
       >
-        <div className="w-full bg-white/20 dark:bg-white/5 backdrop-blur-2xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] rounded-3xl p-8 overflow-y-auto">
+        {/* Glass Container */}
+        <div className="w-full bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-2xl rounded-3xl p-8 overflow-y-auto">
           
+          {/* Logo Section */}
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -129,11 +105,11 @@ export default function LoginPage() {
                 fill
                 className="object-contain"
                 priority
-                draggable={false}
               />
             </div>
           </motion.div>
 
+          {/* Heading */}
           <motion.h1 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -151,8 +127,10 @@ export default function LoginPage() {
             Welcome back, please enter your details.
           </motion.p>
 
+          {/* Form */}
           <form onSubmit={handleLogin} className="space-y-4 w-full">
             
+            {/* Email Input */}
             <motion.div 
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -167,11 +145,12 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-white/30 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent block w-full pl-10 p-3.5 transition-all duration-300 outline-none shadow-sm backdrop-blur-sm"
+                className="w-full bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-white/30 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent block w-full pl-10 p-3.5 transition-all duration-300 outline-none shadow-sm"
                 placeholder="Enter your Email"
               />
             </motion.div>
 
+            {/* Password Input */}
             <motion.div 
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -186,11 +165,12 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-white/30 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent block w-full pl-10 p-3.5 transition-all duration-300 outline-none shadow-sm backdrop-blur-sm"
+                className="w-full bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-white/30 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent block w-full pl-10 p-3.5 transition-all duration-300 outline-none shadow-sm"
                 placeholder="Enter your Password"
               />
             </motion.div>
 
+            {/* Error Message */}
             <AnimatePresence>
               {error && (
                 <motion.div
@@ -199,11 +179,12 @@ export default function LoginPage() {
                   exit={{ opacity: 0, height: 0 }}
                   className="text-red-500 dark:text-red-400 text-xs text-center font-medium"
                 >
-                  Invalid credentials.
+                  <span>Invalid credentials.</span>
                 </motion.div>
               )}
             </AnimatePresence>
 
+            {/* Submit Button */}
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -221,11 +202,12 @@ export default function LoginPage() {
             </motion.button>
           </form>
 
+          {/* Footer */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
-            className="mt-6 text-center text-xs text-gray-500 dark:text-white/50"
+            className="mt-6 text-center text-xs text-gray-500 dark:text-white/60"
           >
             New? <span className="text-blue-600 dark:text-white font-semibold cursor-pointer hover:underline">Create an account.</span>
           </motion.div>
