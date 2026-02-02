@@ -11,23 +11,23 @@ const FloatingShapes = () => {
 
   useEffect(() => {
     const colors = [
-      "bg-blue-400/30 dark:bg-blue-600/10", 
-      "bg-purple-400/30 dark:bg-purple-600/10", 
-      "bg-pink-400/30 dark:bg-pink-600/10", 
-      "bg-orange-400/30 dark:bg-orange-600/10", 
+      "bg-blue-400/30 dark:bg-blue-600/10",
+      "bg-purple-400/30 dark:bg-purple-600/10",
+      "bg-pink-400/30 dark:bg-pink-600/10",
+      "bg-orange-400/30 dark:bg-orange-600/10",
       "bg-emerald-400/30 dark:bg-emerald-600/10"
     ];
 
     const generatedShapes = Array.from({ length: 8 }).map((_, i) => {
-      const isBig = i === 0; 
-      const size = isBig ? Math.random() * 200 + 300 : Math.random() * 100 + 50; 
+      const isBig = i === 0;
+      const size = isBig ? Math.random() * 200 + 300 : Math.random() * 100 + 50;
       
       return {
         id: i,
         size: size,
         x: Math.random() * 100,
         y: Math.random() * 100,
-        duration: Math.random() * 60 + 40, 
+        duration: Math.random() * 60 + 40,
         color: colors[Math.floor(Math.random() * colors.length)],
         delay: Math.random() * 10
       };
@@ -41,13 +41,13 @@ const FloatingShapes = () => {
         <motion.div
           key={shape.id}
           className={`absolute rounded-full blur-3xl ${shape.color}`}
-          initial={{ 
-            width: shape.size, 
-            height: shape.size, 
-            x: `${shape.x}vw`, 
-            y: `${shape.y}vh` 
+          initial={{
+            width: shape.size,
+            height: shape.size,
+            x: `${shape.x}vw`,
+            y: `${shape.y}vh`
           }}
-          animate={{ 
+          animate={{
             x: [`${shape.x}vw`, `${Math.random() * 100}vw`, `${Math.random() * 100}vw`],
             y: [`${shape.y}vh`, `${Math.random() * 100}vh`, `${Math.random() * 100}vh`],
             scale: [1, 1.2, 0.9, 1],
@@ -99,14 +99,18 @@ export default function LoginPage() {
     setError(false);
 
     setTimeout(() => {
-      if (email === "admin@xmail.com" && password === "1234567890") {
+      // Updated login logic with new credentials
+      const isValidAdmin = email === "admin@xmail.com" && password === "1234567890";
+      const isValidUser = email === "abir@entrylab.com" && password === "09876@12345";
+
+      if (isValidAdmin || isValidUser) {
         localStorage.setItem("is_logged_in", "true");
         router.push("/dashboard");
       } else {
         setError(true);
         setLoading(false);
       }
-    }, 1500); 
+    }, 1500);
   };
 
   return (
@@ -119,16 +123,16 @@ export default function LoginPage() {
         className="w-full max-w-[420px] max-h-[90vh] flex flex-col items-center justify-center relative z-10"
       >
         <div className="w-full bg-white/20 dark:bg-white/5 backdrop-blur-2xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] rounded-3xl p-8 overflow-y-auto">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, type: "spring" }}
             className="flex justify-center mb-4 pointer-events-none"
           >
             <div className="relative w-40 h-40 drop-shadow-2xl">
-              <Image 
-                src="https://iili.io/FC3KC6g.png" 
-                alt="EntryLab Logo" 
+              <Image
+                src="https://iili.io/FC3KC6g.png"
+                alt="EntryLab Logo"
                 fill
                 className="object-contain"
                 priority
@@ -137,7 +141,7 @@ export default function LoginPage() {
             </div>
           </motion.div>
 
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -145,7 +149,7 @@ export default function LoginPage() {
           >
             Log in to EntryLab
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
@@ -155,7 +159,7 @@ export default function LoginPage() {
           </motion.p>
 
           <form onSubmit={handleLogin} className="space-y-4 w-full">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 }}
@@ -174,7 +178,7 @@ export default function LoginPage() {
               />
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.6 }}
@@ -223,7 +227,7 @@ export default function LoginPage() {
             </motion.button>
           </form>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
