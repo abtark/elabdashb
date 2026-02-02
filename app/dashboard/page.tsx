@@ -5,9 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import {
-  CheckSquare, Table, Clock, Zap, Coffee, Sun, Moon,
-  Play, Pause, Compass
+import { 
+  Table, Clock, Zap, Coffee, Sun, Moon, 
+  Play, Pause, Compass 
 } from "lucide-react";
 
 import Sidebar from "./components/Sidebar";
@@ -22,16 +22,16 @@ const FloatingShapes = () => {
 
   useEffect(() => {
     const colors = [
-      "bg-blue-400/30 dark:bg-blue-600/10",
-      "bg-purple-400/30 dark:bg-purple-600/10",
-      "bg-pink-400/30 dark:bg-pink-600/10",
-      "bg-orange-400/30 dark:bg-orange-600/10",
+      "bg-blue-400/30 dark:bg-blue-600/10", 
+      "bg-purple-400/30 dark:bg-purple-600/10", 
+      "bg-pink-400/30 dark:bg-pink-600/10", 
+      "bg-orange-400/30 dark:bg-orange-600/10", 
       "bg-emerald-400/30 dark:bg-emerald-600/10"
     ];
 
     const generatedShapes = Array.from({ length: 8 }).map((_, i) => {
-      const isBig = i === 0;
-      const size = isBig ? Math.random() * 200 + 300 : Math.random() * 100 + 50;
+      const isBig = i === 0; 
+      const size = isBig ? Math.random() * 200 + 300 : Math.random() * 100 + 50; 
       
       return {
         id: i,
@@ -52,13 +52,13 @@ const FloatingShapes = () => {
         <motion.div
           key={shape.id}
           className={`absolute rounded-full blur-3xl ${shape.color}`}
-          initial={{
-            width: shape.size,
-            height: shape.size,
-            x: `${shape.x}vw`,
-            y: `${shape.y}vh`
+          initial={{ 
+            width: shape.size, 
+            height: shape.size, 
+            x: `${shape.x}vw`, 
+            y: `${shape.y}vh` 
           }}
-          animate={{
+          animate={{ 
             x: [`${shape.x}vw`, `${Math.random() * 100}vw`, `${Math.random() * 100}vw`],
             y: [`${shape.y}vh`, `${Math.random() * 100}vh`, `${Math.random() * 100}vh`],
             scale: [1, 1.2, 0.9, 1],
@@ -179,7 +179,6 @@ export default function DashboardPage() {
   useEffect(() => { if (isClient) localStorage.setItem('global_total_sent_links', JSON.stringify(totalSentLinks)); }, [totalSentLinks, isClient]);
   useEffect(() => { if (isClient) localStorage.setItem('global_entries_counts', JSON.stringify(entriesCounts)); }, [entriesCounts, isClient]);
 
-  // Handle Logout Function
   const handleLogout = () => {
     localStorage.removeItem("is_logged_in");
     router.push("/");
@@ -246,9 +245,6 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex flex-1 overflow-hidden relative">
-            {/* CRITICAL: I passed 'onLogout={handleLogout}' below. 
-                You must update your Sidebar component to use this prop.
-            */}
             <Sidebar 
                 menuItems={menuItems} 
                 activeApp={activeApp} 
