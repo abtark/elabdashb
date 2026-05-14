@@ -146,7 +146,7 @@ const OfficePage = ({ triggerConfirm, resetSignal }: { triggerConfirm: any, rese
   const { sales, search, officeTotal } = calculateTotals();
   const handleInput = (type: 'sales' | 'search', index: number, val: string) => { setInputs(prev => ({ ...prev, [`${type}-${index}`]: val })); };
 
-  const sendToDiscord = async () => { setIsSending(true); setIsSent(false); const content = `Total Sent Links: ***${officeTotal.toLocaleString()}***`; const webhookURL = "https://discord.com/api/webhooks/1466497164157911042/Cxc4IR1RJ0idOh-ctI5pyHYnODdHo4Hpk30qn3L7edcv960mzkg62BIaA-N0xmlIyDzV"; try { await fetch(webhookURL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content }) }); setIsSending(false); setIsSent(true); setTimeout(() => setIsSent(false), 2000); } catch (e) { alert("Failed to send."); setIsSending(false); } };
+  const sendToDiscord = async () => { setIsSending(true); setIsSent(false); const content = `Total Sent Links: ${officeTotal.toLocaleString()}`; const webhookURL = "https://discord.com/api/webhooks/1504368867231924264/ljr6yXlLBCJyn3Q0aieX58YqkDhrVc_K2bvKac1oT4eztcJWlr8LEjsx66O1ieCgz1_-"; try { await fetch(webhookURL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content }) }); setIsSending(false); setIsSent(true); setTimeout(() => setIsSent(false), 2000); } catch (e) { alert("Failed to send."); setIsSending(false); } };
 
   return (
     <div className="h-full flex flex-col gap-3 select-none">
