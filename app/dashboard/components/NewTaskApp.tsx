@@ -75,8 +75,6 @@ const EmailManagerSection = ({ triggerAlert, triggerConfirm }: any) => {
     const [bulkInput, setBulkInput] = useState("");
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editValue, setEditValue] = useState("");
-    
-    // FIX: Proper persistence loading
     const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => { 
@@ -148,7 +146,7 @@ const OfficePage = ({ triggerConfirm, resetSignal }: { triggerConfirm: any, rese
   const { sales, search, officeTotal } = calculateTotals();
   const handleInput = (type: 'sales' | 'search', index: number, val: string) => { setInputs(prev => ({ ...prev, [`${type}-${index}`]: val })); };
 
-  const sendToDiscord = async () => { setIsSending(true); setIsSent(false); const content = `Sent Links: **${officeTotal.toLocaleString()}**\n\nTarget: **${target/1000}k**`; const webhookURL = "https://discord.com/api/webhooks/1466497164157911042/Cxc4IR1RJ0idOh-ctI5pyHYnODdHo4Hpk30qn3L7edcv960mzkg62BIaA-N0xmlIyDzV"; try { await fetch(webhookURL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content }) }); setIsSending(false); setIsSent(true); setTimeout(() => setIsSent(false), 2000); } catch (e) { alert("Failed to send."); setIsSending(false); } };
+  const sendToDiscord = async () => { setIsSending(true); setIsSent(false); const content = `Total Sent Links: ***${officeTotal.toLocaleString()}***`; const webhookURL = "https://discord.com/api/webhooks/1466497164157911042/Cxc4IR1RJ0idOh-ctI5pyHYnODdHo4Hpk30qn3L7edcv960mzkg62BIaA-N0xmlIyDzV"; try { await fetch(webhookURL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content }) }); setIsSending(false); setIsSent(true); setTimeout(() => setIsSent(false), 2000); } catch (e) { alert("Failed to send."); setIsSending(false); } };
 
   return (
     <div className="h-full flex flex-col gap-3 select-none">
@@ -174,9 +172,6 @@ const OfficePage = ({ triggerConfirm, resetSignal }: { triggerConfirm: any, rese
          </div>
       </div>
 
-      {/* REMOVED MIDDLE SUMMARY SECTION */}
-
-      {/* FIXED 1-COLUMN STACK FOR HOURS */}
       <div className="flex-1 bg-[#0B66C3]/10 border border-black/5 dark:border-white/10 rounded-2xl p-4 shadow-sm overflow-hidden flex flex-col">
          <div className="grid grid-cols-[1fr_80px_1fr] gap-x-8 mb-2 text-center font-bold text-[#0B66C3] text-sm shrink-0">
             <div>Sales</div><div>Time</div><div>Search</div>
